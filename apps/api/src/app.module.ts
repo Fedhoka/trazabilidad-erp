@@ -5,6 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { MaterialsModule } from './modules/materials/materials.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { ProcurementModule } from './modules/procurement/procurement.module';
+import { ProductionModule } from './modules/production/production.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { FiscalModule } from './modules/fiscal/fiscal.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -29,6 +36,13 @@ import { RolesGuard } from './common/guards/roles.guard';
     AuthModule,
     UsersModule,
     TenantsModule,
+    SuppliersModule,
+    MaterialsModule,
+    InventoryModule,
+    ProcurementModule,
+    ProductionModule,
+    SalesModule,
+    FiscalModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
