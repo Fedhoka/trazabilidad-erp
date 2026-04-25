@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { TenantEntity } from '../../../common/entities/base.entity';
+import { PurchaseOrderLine } from './purchase-order-line.entity';
 
 export enum PurchaseOrderStatus {
   DRAFT = 'DRAFT',
@@ -22,4 +23,7 @@ export class PurchaseOrder extends TenantEntity {
 
   @Column({ nullable: true })
   notes: string | null;
+
+  @OneToMany(() => PurchaseOrderLine, (l) => l.purchaseOrder, { cascade: ['insert'] })
+  lines: PurchaseOrderLine[];
 }

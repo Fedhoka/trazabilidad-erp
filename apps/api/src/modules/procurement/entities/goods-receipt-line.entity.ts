@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { TenantEntity } from '../../../common/entities/base.entity';
+import { GoodsReceipt } from './goods-receipt.entity';
 
 export enum QcStatus {
   PASS = 'PASS',
@@ -11,6 +12,10 @@ export enum QcStatus {
 export class GoodsReceiptLine extends TenantEntity {
   @Column({ name: 'goods_receipt_id' })
   goodsReceiptId: string;
+
+  @ManyToOne(() => GoodsReceipt, (gr) => gr.lines)
+  @JoinColumn({ name: 'goods_receipt_id' })
+  goodsReceipt: GoodsReceipt;
 
   @Column({ name: 'purchase_order_line_id' })
   purchaseOrderLineId: string;
