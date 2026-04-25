@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-25
-**Current phase**: 🔜 Stage 2
+**Current phase**: 🔜 Stage 3
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -13,10 +13,10 @@
 ## Stages
 
 - ✅ **Stage 1** — Monorepo scaffolding
-  - Root files created (pnpm-workspace, package.json, docker-compose, .env, .gitignore, .nvmrc, README)
-  - NestJS app scaffolded at apps/api with all deps; Next.js 15 at apps/web with shadcn/ui (12 components)
-- 🔜 **Stage 2** — Auth + Tenants + Users
-- ⬜ Stage 3 — Full DB schema + migration
+  - Root files, NestJS apps/api, Next.js apps/web + shadcn (12 components). Both build clean.
+- ✅ **Stage 2** — Auth + Tenants + Users
+  - main.ts (ValidationPipe, /api/v1, CORS), app.module.ts (global guards), common decorators/guards/base entity, users/tenants/auth modules. Build clean (expiresIn cast as any for StringValue branded type).
+- 🔜 **Stage 3** — Full DB schema + migration
 - ⬜ Stage 4 — Suppliers + Materials + Procurement + Receipts
 - ⬜ Stage 5 — Production + Traceability
 - ⬜ Stage 6 — Customers + Sales + Fiscal (mock)
@@ -30,11 +30,10 @@
 
 ## Notes / blockers / decisions
 
-- Docker Desktop not installed on this machine. `docker compose up -d` will need to be run manually once Docker is installed. Both apps verified via `pnpm build` instead.
-- pnpm dlx has a local cache bug; npx used as workaround for @nestjs/cli and create-next-app.
+- Docker Desktop not installed; apps verified via pnpm build.
+- pnpm dlx has a local cache bug; npx used as workaround.
+- @nestjs/jwt@11 uses branded StringValue type for expiresIn — cast as any in auth.module.ts and auth.service.ts.
 
 ## Last verification commands
 
-Stage 1:
-- `pnpm build` in apps/api → compiled successfully (dist/ created)
-- `pnpm build` in apps/web → compiled successfully, static pages generated
+Stage 2: `pnpm build` in apps/api → compiled clean, no errors.
