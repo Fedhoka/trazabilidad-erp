@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-25
-**Current phase**: 🔜 Stage 1
+**Current phase**: 🔜 Stage 2
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -12,8 +12,10 @@
 
 ## Stages
 
-- 🔜 **Stage 1** — Monorepo scaffolding
-- ⬜ Stage 2 — Auth + Tenants + Users
+- ✅ **Stage 1** — Monorepo scaffolding
+  - Root files created (pnpm-workspace, package.json, docker-compose, .env, .gitignore, .nvmrc, README)
+  - NestJS app scaffolded at apps/api with all deps; Next.js 15 at apps/web with shadcn/ui (12 components)
+- 🔜 **Stage 2** — Auth + Tenants + Users
 - ⬜ Stage 3 — Full DB schema + migration
 - ⬜ Stage 4 — Suppliers + Materials + Procurement + Receipts
 - ⬜ Stage 5 — Production + Traceability
@@ -28,8 +30,11 @@
 
 ## Notes / blockers / decisions
 
-(When a stage stalls 🚧, log here what's missing and why.)
+- Docker Desktop not installed on this machine. `docker compose up -d` will need to be run manually once Docker is installed. Both apps verified via `pnpm build` instead.
+- pnpm dlx has a local cache bug; npx used as workaround for @nestjs/cli and create-next-app.
 
 ## Last verification commands
 
-(After each stage, paste the commands run to verify it works.)
+Stage 1:
+- `pnpm build` in apps/api → compiled successfully (dist/ created)
+- `pnpm build` in apps/web → compiled successfully, static pages generated
