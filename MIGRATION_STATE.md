@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-25
-**Current phase**: 🔜 Stage 5
+**Current phase**: 🔜 Stage 6
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -16,12 +16,12 @@
 - ✅ **Stage 2** — Auth + Tenants + Users
 - ✅ **Stage 3** — Full DB schema + migration
 - ✅ **Stage 4** — Suppliers + Materials + Procurement + Receipts
-  - SuppliersService/Controller (CRUD), MaterialsService/Controller (CRUD + code uniqueness)
-  - ProcurementService (PO create with MAX(number)+1 sequence, approve, cancel state machine)
-  - GoodsReceiptsService (full transaction: lot creation, QC→status mapping, expiresOn from shelfLifeDays, avg_cost recompute)
+- ✅ **Stage 5** — Production + Traceability
+  - RecipesService (create with components in tx, DRAFT→ACTIVE→ARCHIVED), RecipesController
+  - ProductionOrdersService: create (MAX(number)+1, theoretical cost = Σ qtyPerBatch × scale × (1+loss%) × avgCost), start, recordConsumption (pessimistic lock on lot, deduct, CONSUMED when 0), complete (actual cost from consumptions, FinishedLot, avg_cost recompute), cancel
+  - TraceabilityService: backward/forward/full with raw SQL CTEs via json_agg
   - Build clean.
-- 🔜 **Stage 5** — Production + Traceability
-- ⬜ Stage 6 — Customers + Sales + Fiscal (mock)
+- 🔜 **Stage 6** — Customers + Sales + Fiscal (mock)
 - ⬜ Stage 7a — Frontend foundation + auth + dashboard
 - ⬜ Stage 7b — Frontend suppliers + materials
 - ⬜ Stage 7c — Frontend procurement + receipts
@@ -32,11 +32,11 @@
 
 ## Notes / blockers / decisions
 
-- Docker Desktop not installed; apps verified via pnpm build. Run `pnpm infra:up` then `pnpm migration:run` once Docker is available.
+- Docker Desktop not installed; apps verified via pnpm build.
 - pnpm dlx has a local cache bug; npx used as workaround.
-- @nestjs/jwt@11 uses branded StringValue type for expiresIn — cast as any.
-- dotenv added as runtime dep for data-source.ts CLI usage.
+- @nestjs/jwt@11 branded StringValue type → cast as any.
+- dotenv added as runtime dep.
 
 ## Last verification commands
 
-Stage 4: `pnpm build` in apps/api → compiled clean.
+Stage 5: `pnpm build` in apps/api → compiled clean.
