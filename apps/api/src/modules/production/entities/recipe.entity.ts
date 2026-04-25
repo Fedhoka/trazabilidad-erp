@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { TenantEntity } from '../../../common/entities/base.entity';
+import { RecipeComponent } from './recipe-component.entity';
 
 export enum RecipeStatus {
   DRAFT = 'DRAFT',
@@ -29,4 +30,7 @@ export class Recipe extends TenantEntity {
 
   @Column({ nullable: true })
   notes: string | null;
+
+  @OneToMany(() => RecipeComponent, (c) => c.recipe)
+  components: RecipeComponent[];
 }
