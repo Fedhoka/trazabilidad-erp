@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 20 complete
+**Current phase**: ✅ Stage 21 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,13 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 21** — Environment validation
+  - `joi` installed
+  - `src/config/env.validation.ts`: Joi schema for all env vars — DB, API, JWT (min 32 chars), AFIP (conditional: cert/key/CUIT required when AFIP_ENV ≠ mock), Redis, throttle, NODE_ENV
+  - `ConfigModule.forRoot`: `validationSchema` + `abortEarly: false` (all errors reported at once) + `allowUnknown: true` (tolerates PATH/HOME/etc.)
+  - App exits with a clear error message listing every missing/invalid var before accepting any traffic
+  - Build clean.
+
 - ✅ **Stage 20** — Security hardening
   - `@nestjs/throttler` + `helmet` installed
   - `AppModule`: `ThrottlerModule.forRootAsync` (120 req/60 s default, env-configurable); `ThrottlerGuard` as first `APP_GUARD`
@@ -170,3 +177,4 @@ Stage 17: `pnpm build` in apps/api + apps/web → compiled clean, 17 routes.
 Stage 18: `nest build` in apps/api → clean. Docker files created; full build requires Docker daemon.
 Stage 19: `nest build` in apps/api → clean.
 Stage 20: `nest build` in apps/api → clean.
+Stage 21: `nest build` in apps/api → clean.
