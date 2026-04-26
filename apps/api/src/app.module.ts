@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
+import { randomUUID } from 'crypto';
 import { envValidationSchema } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -34,6 +36,34 @@ import { RolesGuard } from './common/guards/roles.guard';
         allowUnknown: true, // tolerate extra vars (e.g. PATH, HOME, etc.)
       },
     }),
+
+    // ── Structured logging ───────────────────────────────────────────────────
+    // JSON in production (queryable by CloudWatch / Datadog / Loki).
+    // Pretty-printed in dev. Health-check requests are silenced to avoid noise.
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => {
+        const isDev = cfg.get<string>('NODE_ENV') !== 'production';
+        return {
+          pinoHttp: {
+            level: isDev ? 'debug' : 'info',
+            transport: isDev
+              ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+              : undefined,
+            // Honour or generate a request-ID for end-to-end log correlation.
+            genReqId: (req) =>
+              (req.headers['x-request-id'] as string | undefined) ?? randomUUID(),
+            // Never log auth tokens.
+            redact: ['req.headers.authorization'],
+            // Silence high-frequency health probes.
+            autoLogging: {
+              ignore: (req) => !!req.url?.includes('/health'),
+            },
+          },
+        };
+      },
+    }),
+
     ScheduleModule.forRoot(),
 
     // Rate limiting — default: 120 requests per 60 s per IP.

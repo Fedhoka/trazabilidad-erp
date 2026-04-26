@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 23 complete
+**Current phase**: ✅ Stage 24 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,15 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 24** — Structured logging (Pino)
+  - `nestjs-pino`, `pino-http` installed (runtime); `pino-pretty` (devDependency)
+  - `LoggerModule.forRootAsync` in `AppModule`: JSON in production, pino-pretty in dev
+  - `genReqId`: reads `x-request-id` request header or generates UUID — every log line in a request shares the same ID
+  - `redact: ['req.headers.authorization']` — tokens never appear in logs
+  - `autoLogging.ignore`: health-check GET requests are silenced
+  - `main.ts`: `NestFactory.create(..., { bufferLogs: true })` + `app.useLogger(app.get(Logger))` — all `new Logger('ctx')` calls across services now go through Pino
+  - Build clean.
+
 - ✅ **Stage 23** — Health-check endpoint
   - `@nestjs/terminus` installed
   - `RedisService`: added `ping()` method (PING→PONG check)
@@ -199,3 +208,4 @@ Stage 20: `nest build` in apps/api → clean.
 Stage 21: `nest build` in apps/api → clean.
 Stage 22: `nest build` in apps/api → clean. `next build` in apps/web → clean, 17 routes.
 Stage 23: `nest build` in apps/api → clean.
+Stage 24: `nest build` in apps/api → clean.

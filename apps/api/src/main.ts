@@ -1,14 +1,19 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
+import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
-const logger = new Logger('Bootstrap');
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // bufferLogs=true: NestJS queues early log calls until Pino is ready,
+  // then flushes them — no bootstrap messages are lost.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Replace NestJS's default logger with Pino for all Logger() calls.
+  const logger = app.get(Logger);
+  app.useLogger(logger);
 
   // Run any pending TypeORM migrations before accepting traffic.
   // This is idempotent — already-applied migrations are skipped.
