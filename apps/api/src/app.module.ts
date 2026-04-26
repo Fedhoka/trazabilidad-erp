@@ -12,6 +12,9 @@ import { ProcurementModule } from './modules/procurement/procurement.module';
 import { ProductionModule } from './modules/production/production.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { FiscalModule } from './modules/fiscal/fiscal.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { RedisModule } from './modules/redis/redis.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -43,6 +46,9 @@ import { RolesGuard } from './common/guards/roles.guard';
     ProductionModule,
     SalesModule,
     FiscalModule,
+    DashboardModule,
+    ReportsModule,
+    RedisModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

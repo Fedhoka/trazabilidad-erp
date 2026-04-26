@@ -2,11 +2,15 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import * as crypto from 'crypto';
 import { TenantsService } from '../tenants/tenants.service';
 import { UsersService } from '../users/users.service';
+import { RedisService } from '../redis/redis.service';
 import { UserRole } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+
+const BLOCKLIST_PREFIX = 'rt:bl:';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +19,7 @@ export class AuthService {
     private readonly tenantsService: TenantsService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly redis: RedisService,
   ) {}
 
   async registerTenant(dto: RegisterTenantDto) {
@@ -51,6 +56,10 @@ export class AuthService {
 
   async refresh(token: string) {
     try {
+      const hash = this.tokenHash(token);
+      const blocked = await this.redis.exists(BLOCKLIST_PREFIX + hash);
+      if (blocked) throw new UnauthorizedException('Token revoked');
+
       const payload = this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
@@ -60,6 +69,23 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async logout(token: string): Promise<void> {
+    try {
+      const payload = this.jwtService.decode(token) as { exp?: number } | null;
+      const ttl = payload?.exp ? payload.exp - Math.floor(Date.now() / 1000) : 0;
+      if (ttl > 0) {
+        const hash = this.tokenHash(token);
+        await this.redis.set(BLOCKLIST_PREFIX + hash, '1', ttl);
+      }
+    } catch {
+      // Non-fatal — client should clear tokens regardless
+    }
+  }
+
+  private tokenHash(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   private issueTokens(user: { id: string; email: string; tenantId: string; role: UserRole }) {
