@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 19 complete
+**Current phase**: ✅ Stage 20 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,14 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 20** — Security hardening
+  - `@nestjs/throttler` + `helmet` installed
+  - `AppModule`: `ThrottlerModule.forRootAsync` (120 req/60 s default, env-configurable); `ThrottlerGuard` as first `APP_GUARD`
+  - `main.ts`: `helmet()` with CSP enabled in production, disabled in dev (Swagger uses inline scripts); Swagger only mounted when `NODE_ENV !== production`; CORS now explicit (`methods`, `allowedHeaders`, `credentials`); `ValidationPipe` gains `forbidNonWhitelisted: true` + `enableImplicitConversion`
+  - `AuthController`: `@Throttle({ default: { limit: 10, ttl: 60_000 } })` — brute-force protection on login / register / refresh
+  - `.env.example`: `THROTTLE_TTL_MS` + `THROTTLE_LIMIT` documented
+  - Build clean.
+
 - ✅ **Stage 19** — DB migrations (no synchronize)
   - `app.module.ts`: `synchronize` hardcoded to `false` — no env-var escape hatch
   - `main.ts`: `app.get(DataSource).showMigrations()` + `runMigrations()` before `app.listen()` — safe for Docker (idempotent)
@@ -161,3 +169,4 @@ Stage 16: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 17: `pnpm build` in apps/api + apps/web → compiled clean, 17 routes.
 Stage 18: `nest build` in apps/api → clean. Docker files created; full build requires Docker daemon.
 Stage 19: `nest build` in apps/api → clean.
+Stage 20: `nest build` in apps/api → clean.

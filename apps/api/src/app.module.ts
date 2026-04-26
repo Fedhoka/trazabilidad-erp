@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
@@ -25,6 +26,20 @@ import { RolesGuard } from './common/guards/roles.guard';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+
+    // Rate limiting — default: 120 requests per 60 s per IP.
+    // Override per-route with @Throttle({ default: { limit, ttl } }).
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => [
+        {
+          name: 'default',
+          ttl: cfg.get<number>('THROTTLE_TTL_MS') ?? 60_000,
+          limit: cfg.get<number>('THROTTLE_LIMIT') ?? 120,
+        },
+      ],
+    }),
+
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
@@ -39,6 +54,7 @@ import { RolesGuard } from './common/guards/roles.guard';
         autoLoadEntities: true,
       }),
     }),
+
     AuthModule,
     UsersModule,
     TenantsModule,
@@ -55,6 +71,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     SchedulerModule,
   ],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: TenantGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
