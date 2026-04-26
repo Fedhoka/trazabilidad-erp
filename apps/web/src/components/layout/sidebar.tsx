@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -14,13 +15,14 @@ import {
   Receipt,
   Settings,
   LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-const navItems = [
+const navItems: { href: string; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/suppliers', label: 'Proveedores', icon: Truck },
   { href: '/materials', label: 'Materiales', icon: Package },
@@ -31,6 +33,7 @@ const navItems = [
   { href: '/sales-orders', label: 'Ventas', icon: FileText },
   { href: '/fiscal', label: 'Fiscal', icon: Receipt },
   { href: '/users', label: 'Usuarios', icon: Settings },
+  { href: '/audit', label: 'Auditoría', icon: ClipboardList, ownerOnly: true },
 ];
 
 export function Sidebar() {
@@ -50,21 +53,23 @@ export function Sidebar() {
       </div>
       <Separator />
       <nav className="flex-1 overflow-y-auto py-2">
-        {navItems.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              'flex items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-              pathname === href || pathname.startsWith(`${href}/`)
-                ? 'bg-accent text-accent-foreground font-medium'
-                : 'text-muted-foreground',
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            {label}
-          </Link>
-        ))}
+        {navItems
+          .filter(({ ownerOnly }) => !ownerOnly || user?.role === 'OWNER')
+          .map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+                pathname === href || pathname.startsWith(`${href}/`)
+                  ? 'bg-accent text-accent-foreground font-medium'
+                  : 'text-muted-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {label}
+            </Link>
+          ))}
       </nav>
       <Separator />
       <div className="p-3">

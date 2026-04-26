@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -23,6 +23,8 @@ import { RedisModule } from './modules/redis/redis.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { HealthModule } from './modules/health/health.module';
 import { EmailModule } from './modules/email/email.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AuditInterceptor } from './modules/audit/audit.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -111,12 +113,14 @@ import { RolesGuard } from './common/guards/roles.guard';
     SchedulerModule,
     HealthModule,
     EmailModule,
+    AuditModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: TenantGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })
 export class AppModule {}
