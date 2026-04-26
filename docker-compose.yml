@@ -45,6 +45,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   web:
     build:
@@ -54,7 +60,8 @@ services:
     ports: ["3000:3000"]
     env_file: apps/web/.env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:

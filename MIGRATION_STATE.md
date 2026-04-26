@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 22 complete
+**Current phase**: ✅ Stage 23 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,14 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 23** — Health-check endpoint
+  - `@nestjs/terminus` installed
+  - `RedisService`: added `ping()` method (PING→PONG check)
+  - `HealthModule`: `TerminusModule` + `TypeOrmHealthIndicator` (critical — 503 on DB failure) + custom `RedisHealthIndicator` (non-critical — degraded, never 503)
+  - `GET /health` — `@Public()`, bypasses all guards; returns `{ status, info, error, details }`
+  - `docker-compose.yml`: api service gains `healthcheck` (wget `/health`, 15 s interval, 30 s start_period); web `depends_on` upgraded to `condition: service_healthy`
+  - Build clean.
+
 - ✅ **Stage 22** — Pagination
   - `PaginationDto` (`page` / `limit` with class-validator) + `paginateMeta()` helper in `apps/api/src/common/dto/pagination.dto.ts`
   - All 10 list services updated to `findAndCount` (TypeORM repos) or parallel COUNT+SELECT (raw SQL inventory); return `{ data, meta: { total, page, limit, totalPages } }`
@@ -190,3 +198,4 @@ Stage 19: `nest build` in apps/api → clean.
 Stage 20: `nest build` in apps/api → clean.
 Stage 21: `nest build` in apps/api → clean.
 Stage 22: `nest build` in apps/api → clean. `next build` in apps/web → clean, 17 routes.
+Stage 23: `nest build` in apps/api → clean.

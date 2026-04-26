@@ -42,4 +42,14 @@ export class RedisService implements OnModuleDestroy {
     if (!this.available) return false;
     return (await this.client.exists(key).catch(() => 0)) > 0;
   }
+
+  /** Used by HealthModule — resolves to true only when Redis responds to PING. */
+  async ping(): Promise<boolean> {
+    if (!this.available) return false;
+    try {
+      return (await this.client.ping()) === 'PONG';
+    } catch {
+      return false;
+    }
+  }
 }

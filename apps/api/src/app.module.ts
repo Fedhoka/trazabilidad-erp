@@ -19,6 +19,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { HealthModule } from './modules/health/health.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -77,6 +78,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     ReportsModule,
     RedisModule,
     SchedulerModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
