@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 18 complete
+**Current phase**: ✅ Stage 19 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,13 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 19** — DB migrations (no synchronize)
+  - `app.module.ts`: `synchronize` hardcoded to `false` — no env-var escape hatch
+  - `main.ts`: `app.get(DataSource).showMigrations()` + `runMigrations()` before `app.listen()` — safe for Docker (idempotent)
+  - `package.json`: added `migration:show` (list applied/pending) and `migration:create` scripts
+  - `.env.example`: removed `DB_SYNC`; replaced with explanatory comment
+  - Build clean.
+
 - ✅ **Stage 18** — Docker + Compose
   - `apps/api/Dockerfile`: 3-stage build (installer → builder with `nest build` + `pnpm deploy` → slim node:20-alpine runner)
   - `apps/web/Dockerfile`: same pattern — `next build` + `pnpm deploy` → runner with `next start`
@@ -153,3 +160,4 @@ Stage 15: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 16: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 17: `pnpm build` in apps/api + apps/web → compiled clean, 17 routes.
 Stage 18: `nest build` in apps/api → clean. Docker files created; full build requires Docker daemon.
+Stage 19: `nest build` in apps/api → clean.

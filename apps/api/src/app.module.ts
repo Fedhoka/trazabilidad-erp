@@ -34,7 +34,7 @@ import { RolesGuard } from './common/guards/roles.guard';
         username: cfg.get('DB_USER'),
         password: cfg.get('DB_PASSWORD'),
         database: cfg.get('DB_NAME'),
-        synchronize: cfg.get('DB_SYNC') === 'true',
+        synchronize: false, // always use migrations — never enable in production
         logging: cfg.get('DB_LOGGING') === 'true',
         autoLoadEntities: true,
       }),
