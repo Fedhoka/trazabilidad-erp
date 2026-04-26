@@ -56,16 +56,16 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params);
   const router = useRouter();
   const { data: po, isLoading } = usePurchaseOrder(id);
-  const { data: suppliers } = useSuppliers();
-  const { data: materials } = useMaterials();
+  const { data: suppliersResult } = useSuppliers();
+  const { data: materialsResult } = useMaterials();
   const approve = useApprovePO(id);
   const cancel = useCancelPO(id);
   const createReceipt = useCreateGoodsReceipt();
   const [showReceiptForm, setShowReceiptForm] = useState(false);
 
-  const supplierMap = Object.fromEntries((suppliers ?? []).map((s) => [s.id, s.name]));
+  const supplierMap = Object.fromEntries((suppliersResult?.data ?? []).map((s) => [s.id, s.name]));
   const materialMap = Object.fromEntries(
-    (materials ?? []).map((m) => [m.id, `${m.code} — ${m.name}`]),
+    (materialsResult?.data ?? []).map((m) => [m.id, `${m.code} — ${m.name}`]),
   );
 
   const [receiptLines, setReceiptLines] = useState<ReceiptLineState[]>([]);

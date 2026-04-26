@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Request } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { UsersService } from './users.service';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -11,8 +12,8 @@ export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.service.findAllByTenant(req.user.tenantId);
+  findAll(@Request() req: any, @Query() pagination: PaginationDto) {
+    return this.service.findAllByTenant(req.user.tenantId, pagination);
   }
 
   @Post()

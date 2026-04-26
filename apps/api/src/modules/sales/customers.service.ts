@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Customer } from './entities/customer.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class CustomersService {
@@ -12,8 +13,14 @@ export class CustomersService {
     private readonly repo: Repository<Customer>,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.repo.find({ where: { tenantId } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.repo.findAndCount({
+      where: { tenantId },
+      order: { name: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export interface DashboardKpis {
   availableLots: number;
@@ -34,11 +35,14 @@ export function useDashboardKpis() {
   });
 }
 
-export function useInventoryLots(includeExpired = false) {
+export function useInventoryLots(includeExpired = false, page = 1) {
   return useQuery({
-    queryKey: ['inventory', 'lots', includeExpired],
-    queryFn: () =>
-      apiFetch<InventoryLot[]>(`/inventory/lots${includeExpired ? '?includeExpired=true' : ''}`),
+    queryKey: ['inventory', 'lots', includeExpired, page],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), limit: '25' });
+      if (includeExpired) params.set('includeExpired', 'true');
+      return apiFetch<PaginatedResponse<InventoryLot>>(`/inventory/lots?${params}`);
+    },
   });
 }
 

@@ -5,6 +5,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { User, UserRole } from '../users/entities/user.entity';
 import { LotStatus } from './entities/material-lot.entity';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
 class UpdateLotStatusDto {
   @IsEnum(LotStatus)
@@ -18,9 +19,10 @@ export class InventoryController {
   @Get('lots')
   findLots(
     @CurrentUser() user: User,
+    @Query() pagination: PaginationDto,
     @Query('includeExpired') includeExpired?: string,
   ) {
-    return this.service.findLots(user.tenantId, includeExpired === 'true');
+    return this.service.findLots(user.tenantId, includeExpired === 'true', pagination);
   }
 
   @Get('expiring-soon')

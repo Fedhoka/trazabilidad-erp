@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Material } from './entities/material.entity';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class MaterialsService {
@@ -12,8 +13,14 @@ export class MaterialsService {
     private readonly repo: Repository<Material>,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.repo.find({ where: { tenantId }, order: { name: 'ASC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.repo.findAndCount({
+      where: { tenantId },
+      order: { name: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

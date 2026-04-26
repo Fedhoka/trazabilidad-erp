@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export type SOStatus = 'DRAFT' | 'CONFIRMED' | 'SHIPPED' | 'INVOICED' | 'CANCELLED';
 
@@ -26,11 +27,14 @@ export interface CreateSOPayload {
   lines: { materialId: string; quantity: number; unitPrice: number }[];
 }
 
-const SO_KEY = ['sales-orders'];
-const soKey = (id: string) => ['sales-orders', id];
+const SO_KEY = 'sales-orders';
+const soKey = (id: string) => [SO_KEY, id];
 
-export function useSalesOrders() {
-  return useQuery({ queryKey: SO_KEY, queryFn: () => apiFetch<SalesOrder[]>('/sales-orders') });
+export function useSalesOrders(page = 1) {
+  return useQuery({
+    queryKey: [SO_KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<SalesOrder>>(`/sales-orders?page=${page}&limit=25`),
+  });
 }
 
 export function useSalesOrder(id: string) {
@@ -46,7 +50,7 @@ export function useCreateSalesOrder() {
   return useMutation({
     mutationFn: (data: CreateSOPayload) =>
       apiFetch<SalesOrder>('/sales-orders', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: SO_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [SO_KEY] }),
   });
 }
 
@@ -55,7 +59,7 @@ export function useConfirmSO(id: string) {
   return useMutation({
     mutationFn: () => apiFetch<SalesOrder>(`/sales-orders/${id}/confirm`, { method: 'PATCH' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: SO_KEY });
+      qc.invalidateQueries({ queryKey: [SO_KEY] });
       qc.invalidateQueries({ queryKey: soKey(id) });
     },
   });
@@ -66,7 +70,7 @@ export function useCancelSO(id: string) {
   return useMutation({
     mutationFn: () => apiFetch<SalesOrder>(`/sales-orders/${id}/cancel`, { method: 'PATCH' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: SO_KEY });
+      qc.invalidateQueries({ queryKey: [SO_KEY] });
       qc.invalidateQueries({ queryKey: soKey(id) });
     },
   });

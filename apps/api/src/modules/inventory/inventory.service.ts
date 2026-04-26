@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LotStatus } from './entities/material-lot.entity';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 const CHANGEABLE = new Set<LotStatus>([LotStatus.QUARANTINE, LotStatus.BLOCKED, LotStatus.AVAILABLE]);
 
@@ -26,18 +27,29 @@ const LOT_SELECT = `
 export class InventoryService {
   constructor(private readonly ds: DataSource) {}
 
-  async findLots(tenantId: string, includeExpired = false) {
+  async findLots(tenantId: string, includeExpired = false, { page, limit }: PaginationDto = { page: 1, limit: 25 }) {
     const statusFilter = includeExpired
       ? `ml.status IN ('AVAILABLE', 'QUARANTINE', 'BLOCKED', 'EXPIRED')`
       : `ml.status IN ('AVAILABLE', 'QUARANTINE', 'BLOCKED')`;
 
-    return this.ds.query<Record<string, unknown>[]>(
-      `${LOT_SELECT}
-       WHERE ml.tenant_id = $1
-         AND ${statusFilter}
-       ORDER BY ml.expires_on ASC NULLS LAST, ml.received_at DESC`,
-      [tenantId],
-    );
+    const [data, countRows] = await Promise.all([
+      this.ds.query<Record<string, unknown>[]>(
+        `${LOT_SELECT}
+         WHERE ml.tenant_id = $1
+           AND ${statusFilter}
+         ORDER BY ml.expires_on ASC NULLS LAST, ml.received_at DESC
+         LIMIT $2 OFFSET $3`,
+        [tenantId, limit, (page - 1) * limit],
+      ),
+      this.ds.query<{ total: string }[]>(
+        `SELECT COUNT(*) AS total FROM material_lots ml
+          WHERE ml.tenant_id = $1 AND ${statusFilter}`,
+        [tenantId],
+      ),
+    ]);
+
+    const total = parseInt(countRows[0].total, 10);
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   /** Lots expiring within the next `days` calendar days (default 7). */

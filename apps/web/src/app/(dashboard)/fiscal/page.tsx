@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
@@ -83,12 +84,13 @@ function CreatePOSDialog({ onClose }: { onClose: () => void }) {
 }
 
 export default function FiscalPage() {
-  const { data: posList, isLoading: posLoading } = usePointsOfSale();
-  const { data: invoices, isLoading: invLoading } = useInvoices();
-  const { data: customers } = useCustomers();
+  const [invPage, setInvPage] = useState(1);
   const [posOpen, setPosOpen] = useState(false);
+  const { data: posList, isLoading: posLoading } = usePointsOfSale();
+  const { data: invResult, isLoading: invLoading } = useInvoices(invPage);
+  const { data: customersResult } = useCustomers();
 
-  const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c.name]));
+  const customerMap = Object.fromEntries((customersResult?.data ?? []).map((c) => [c.id, c.name]));
 
   async function downloadPdf(invoiceId: string, invoiceNumber: number) {
     try {
@@ -197,14 +199,14 @@ export default function FiscalPage() {
                     ))}
                   </TableRow>
                 ))}
-              {!invLoading && invoices?.length === 0 && (
+              {!invLoading && invResult?.data.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                     Sin facturas emitidas.
                   </TableCell>
                 </TableRow>
               )}
-              {invoices?.map((inv) => (
+              {invResult?.data.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell>
                     <Badge variant="outline">Fac. {inv.invoiceType}</Badge>
@@ -244,6 +246,13 @@ export default function FiscalPage() {
             </TableBody>
           </Table>
         </div>
+
+        <PaginationControls
+          page={invPage}
+          totalPages={invResult?.meta.totalPages ?? 1}
+          total={invResult?.meta.total ?? 0}
+          onPageChange={setInvPage}
+        />
       </section>
 
       <Dialog open={posOpen} onOpenChange={setPosOpen}>

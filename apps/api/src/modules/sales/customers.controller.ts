@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Request } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -8,8 +9,8 @@ export class CustomersController {
   constructor(private readonly service: CustomersService) {}
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.service.findAll(req.user.tenantId);
+  findAll(@Request() req: any, @Query() pagination: PaginationDto) {
+    return this.service.findAll(req.user.tenantId, pagination);
   }
 
   @Get(':id')

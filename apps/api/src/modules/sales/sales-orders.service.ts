@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { SalesOrder, SalesOrderStatus } from './entities/sales-order.entity';
 import { SalesOrderLine } from './entities/sales-order-line.entity';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class SalesOrdersService {
@@ -15,8 +16,14 @@ export class SalesOrdersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.soRepo.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.soRepo.findAndCount({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

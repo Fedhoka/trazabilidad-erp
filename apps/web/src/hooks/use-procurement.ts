@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export type POStatus = 'DRAFT' | 'APPROVED' | 'RECEIVED' | 'CLOSED' | 'CANCELLED';
 export type QcStatus = 'PASS' | 'FAIL' | 'PENDING';
@@ -45,13 +46,13 @@ export interface CreateReceiptPayload {
   lines: ReceiptLinePayload[];
 }
 
-const PO_KEY = ['purchase-orders'];
-const poKey = (id: string) => ['purchase-orders', id];
+const PO_KEY = 'purchase-orders';
+const poKey = (id: string) => [PO_KEY, id];
 
-export function usePurchaseOrders() {
+export function usePurchaseOrders(page = 1) {
   return useQuery({
-    queryKey: PO_KEY,
-    queryFn: () => apiFetch<PurchaseOrder[]>('/purchase-orders'),
+    queryKey: [PO_KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<PurchaseOrder>>(`/purchase-orders?page=${page}&limit=25`),
   });
 }
 
@@ -68,7 +69,7 @@ export function useCreatePurchaseOrder() {
   return useMutation({
     mutationFn: (data: CreatePOPayload) =>
       apiFetch<PurchaseOrder>('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: PO_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PO_KEY] }),
   });
 }
 
@@ -77,7 +78,7 @@ export function useApprovePO(id: string) {
   return useMutation({
     mutationFn: () => apiFetch<PurchaseOrder>(`/purchase-orders/${id}/approve`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(id) });
     },
   });
@@ -88,7 +89,7 @@ export function useCancelPO(id: string) {
   return useMutation({
     mutationFn: () => apiFetch<PurchaseOrder>(`/purchase-orders/${id}/cancel`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(id) });
     },
   });
@@ -100,7 +101,7 @@ export function useCreateGoodsReceipt() {
     mutationFn: (data: CreateReceiptPayload) =>
       apiFetch('/goods-receipts', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(vars.purchaseOrderId) });
     },
   });

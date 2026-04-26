@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export type UserRole =
   | 'OWNER' | 'PROCUREMENT' | 'PRODUCTION' | 'QC'
@@ -30,10 +31,10 @@ export interface InviteUserPayload {
   role: UserRole;
 }
 
-export function useUsers() {
+export function useUsers(page = 1) {
   return useQuery({
-    queryKey: ['users'],
-    queryFn: () => apiFetch<AppUser[]>('/users'),
+    queryKey: ['users', page],
+    queryFn: () => apiFetch<PaginatedResponse<AppUser>>(`/users?page=${page}&limit=25`),
   });
 }
 
@@ -42,7 +43,7 @@ export function useInviteUser() {
   return useMutation({
     mutationFn: (payload: InviteUserPayload) =>
       apiFetch<AppUser>('/users', { method: 'POST', body: JSON.stringify(payload) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }), // invalidates all pages
   });
 }
 
@@ -51,7 +52,7 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: ({ id, role }: { id: string; role: UserRole }) =>
       apiFetch<AppUser>(`/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }), // invalidates all pages
   });
 }
 
@@ -60,7 +61,7 @@ export function useSetActive() {
   return useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       apiFetch<AppUser>(`/users/${id}/${active ? 'activate' : 'deactivate'}`, { method: 'PATCH' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }), // invalidates all pages
   });
 }
 

@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Dialog,
   DialogContent,
@@ -131,7 +132,8 @@ function SupplierForm({
 }
 
 export default function SuppliersPage() {
-  const { data: suppliers, isLoading } = useSuppliers();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading } = useSuppliers(page);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
 
@@ -179,14 +181,14 @@ export default function SuppliersPage() {
                   ))}
                 </TableRow>
               ))}
-            {!isLoading && suppliers?.length === 0 && (
+            {!isLoading && result?.data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                   Sin proveedores. Creá el primero.
                 </TableCell>
               </TableRow>
             )}
-            {suppliers?.map((s) => (
+            {result?.data.map((s) => (
               <TableRow key={s.id}>
                 <TableCell className="font-medium">{s.name}</TableCell>
                 <TableCell>{s.cuit ?? '—'}</TableCell>
@@ -208,6 +210,13 @@ export default function SuppliersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">

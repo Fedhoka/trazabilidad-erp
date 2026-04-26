@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Supplier } from './entities/supplier.entity';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class SuppliersService {
@@ -12,8 +13,14 @@ export class SuppliersService {
     private readonly repo: Repository<Supplier>,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.repo.find({ where: { tenantId }, order: { name: 'ASC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.repo.findAndCount({
+      where: { tenantId },
+      order: { name: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

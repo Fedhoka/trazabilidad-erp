@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export type CondicionIva = 'RI' | 'CF' | 'MONO' | 'EXENTO';
 
@@ -32,10 +33,13 @@ export interface CustomerPayload {
   contactPhone?: string;
 }
 
-const KEY = ['customers'];
+const KEY = 'customers';
 
-export function useCustomers() {
-  return useQuery({ queryKey: KEY, queryFn: () => apiFetch<Customer[]>('/customers') });
+export function useCustomers(page = 1) {
+  return useQuery({
+    queryKey: [KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<Customer>>(`/customers?page=${page}&limit=25`),
+  });
 }
 
 export function useCreateCustomer() {
@@ -43,7 +47,7 @@ export function useCreateCustomer() {
   return useMutation({
     mutationFn: (data: CustomerPayload) =>
       apiFetch<Customer>('/customers', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }
 
@@ -52,6 +56,6 @@ export function useUpdateCustomer(id: string) {
   return useMutation({
     mutationFn: (data: Partial<CustomerPayload>) =>
       apiFetch<Customer>(`/customers/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Invoice, InvoiceStatus, InvoiceType } from './entities/invoice.entity';
@@ -31,8 +32,14 @@ export class InvoicesService {
     private readonly salesOrdersService: SalesOrdersService,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.invoiceRepo.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.invoiceRepo.findAndCount({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

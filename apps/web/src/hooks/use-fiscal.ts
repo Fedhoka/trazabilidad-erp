@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export interface PointOfSale {
   id: string;
@@ -39,7 +40,7 @@ export interface IssueInvoicePayload {
 }
 
 const POS_KEY = ['points-of-sale'];
-const INV_KEY = ['invoices'];
+const INV_KEY = 'invoices';
 
 export function usePointsOfSale() {
   return useQuery({ queryKey: POS_KEY, queryFn: () => apiFetch<PointOfSale[]>('/points-of-sale') });
@@ -54,8 +55,11 @@ export function useCreatePointOfSale() {
   });
 }
 
-export function useInvoices() {
-  return useQuery({ queryKey: INV_KEY, queryFn: () => apiFetch<Invoice[]>('/invoices') });
+export function useInvoices(page = 1) {
+  return useQuery({
+    queryKey: [INV_KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<Invoice>>(`/invoices?page=${page}&limit=25`),
+  });
 }
 
 export function useIssueInvoice() {
@@ -64,7 +68,7 @@ export function useIssueInvoice() {
     mutationFn: (data: IssueInvoicePayload) =>
       apiFetch<Invoice>('/invoices', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: INV_KEY });
+      qc.invalidateQueries({ queryKey: [INV_KEY] });
       qc.invalidateQueries({ queryKey: ['sales-orders'] });
     },
   });

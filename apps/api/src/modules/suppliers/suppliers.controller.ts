@@ -1,17 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { SuppliersService } from './suppliers.service';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Controller('suppliers')
 export class SuppliersController {
   constructor(private readonly service: SuppliersService) {}
 
   @Get()
-  findAll(@CurrentUser() user: User) {
-    return this.service.findAll(user.tenantId);
+  findAll(@CurrentUser() user: User, @Query() pagination: PaginationDto) {
+    return this.service.findAll(user.tenantId, pagination);
   }
 
   @Get(':id')

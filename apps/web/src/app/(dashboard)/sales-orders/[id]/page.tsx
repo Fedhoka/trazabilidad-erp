@@ -188,14 +188,14 @@ export default function SODetailPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params);
   const router = useRouter();
   const { data: so, isLoading } = useSalesOrder(id);
-  const { data: customers } = useCustomers();
-  const { data: materials } = useMaterials();
+  const { data: customersResult } = useCustomers();
+  const { data: materialsResult } = useMaterials();
   const confirm = useConfirmSO(id);
   const cancel = useCancelSO(id);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
 
-  const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c]));
-  const materialMap = Object.fromEntries((materials ?? []).map((m) => [m.id, m]));
+  const customerMap = Object.fromEntries((customersResult?.data ?? []).map((c) => [c.id, c]));
+  const materialMap = Object.fromEntries((materialsResult?.data ?? []).map((m) => [m.id, m]));
 
   if (isLoading) {
     return (

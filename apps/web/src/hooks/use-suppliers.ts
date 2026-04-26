@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export interface Supplier {
   id: string;
@@ -21,12 +22,12 @@ export interface SupplierPayload {
   contactPhone?: string;
 }
 
-const KEY = ['suppliers'];
+const KEY = 'suppliers';
 
-export function useSuppliers() {
+export function useSuppliers(page = 1) {
   return useQuery({
-    queryKey: KEY,
-    queryFn: () => apiFetch<Supplier[]>('/suppliers'),
+    queryKey: [KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<Supplier>>(`/suppliers?page=${page}&limit=25`),
   });
 }
 
@@ -35,7 +36,7 @@ export function useCreateSupplier() {
   return useMutation({
     mutationFn: (data: SupplierPayload) =>
       apiFetch<Supplier>('/suppliers', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }
 
@@ -44,6 +45,6 @@ export function useUpdateSupplier(id: string) {
   return useMutation({
     mutationFn: (data: Partial<SupplierPayload>) =>
       apiFetch<Supplier>(`/suppliers/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

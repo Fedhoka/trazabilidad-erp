@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { PurchaseOrder, PurchaseOrderStatus } from './entities/purchase-order.entity';
 import { PurchaseOrderLine } from './entities/purchase-order-line.entity';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ProcurementService {
@@ -15,12 +16,15 @@ export class ProcurementService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.poRepo.find({
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.poRepo.findAndCount({
       where: { tenantId },
       relations: ['lines'],
       order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

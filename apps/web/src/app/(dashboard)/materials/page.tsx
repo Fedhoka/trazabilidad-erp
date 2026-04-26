@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
   SelectContent,
@@ -158,7 +159,8 @@ function MaterialForm({
 }
 
 export default function MaterialsPage() {
-  const { data: materials, isLoading } = useMaterials();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading } = useMaterials(page);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
 
@@ -207,14 +209,14 @@ export default function MaterialsPage() {
                   ))}
                 </TableRow>
               ))}
-            {!isLoading && materials?.length === 0 && (
+            {!isLoading && result?.data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   Sin materiales. Creá el primero.
                 </TableCell>
               </TableRow>
             )}
-            {materials?.map((m) => (
+            {result?.data.map((m) => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono text-sm">{m.code}</TableCell>
                 <TableCell className="font-medium">{m.name}</TableCell>
@@ -241,6 +243,13 @@ export default function MaterialsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">

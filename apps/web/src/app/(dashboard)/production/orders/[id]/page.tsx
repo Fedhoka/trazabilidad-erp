@@ -35,13 +35,13 @@ export default function ProductionOrderDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const { data: po, isLoading } = useProductionOrder(id);
-  const { data: materials } = useMaterials();
+  const { data: materialsResult } = useMaterials();
   const start = useStartPO(id);
   const consume = useRecordConsumption(id);
   const complete = useCompletePO(id);
   const cancel = useCancelPO(id);
 
-  const materialMap = Object.fromEntries((materials ?? []).map((m) => [m.id, m.name]));
+  const materialMap = Object.fromEntries((materialsResult?.data ?? []).map((m) => [m.id, m.name]));
 
   // Consume form state
   const [lotId, setLotId] = useState('');

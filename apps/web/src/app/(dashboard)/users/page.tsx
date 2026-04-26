@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
@@ -116,7 +117,8 @@ function RoleCell({ user, isOwner }: { user: AppUser; isOwner: boolean }) {
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
-  const { data: users, isLoading } = useUsers();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading } = useUsers(page);
   const setActive = useSetActive();
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -153,7 +155,7 @@ export default function UsersPage() {
                 ))}
               </TableRow>
             ))}
-            {!isLoading && users?.map((u) => (
+            {!isLoading && result?.data.map((u) => (
               <TableRow key={u.id} className={!u.isActive ? 'opacity-50' : ''}>
                 <TableCell className="font-medium">{u.email}</TableCell>
                 <TableCell><RoleCell user={u} isOwner={isOwner} /></TableCell>
@@ -189,6 +191,13 @@ export default function UsersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Separator />
       <ChangePasswordSection />

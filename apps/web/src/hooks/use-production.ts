@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
+import type { PaginatedResponse } from '@/lib/types';
 
 export type RecipeStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 export type POStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -48,13 +49,16 @@ export interface CreateRecipePayload {
   components: { materialId: string; qtyPerBatch: number; lossPct?: number }[];
 }
 
-const REC_KEY = ['recipes'];
-const PO_KEY = ['production-orders'];
-const recKey = (id: string) => ['recipes', id];
-const poKey = (id: string) => ['production-orders', id];
+const REC_KEY = 'recipes';
+const PO_KEY = 'production-orders';
+const recKey = (id: string) => [REC_KEY, id];
+const poKey = (id: string) => [PO_KEY, id];
 
-export function useRecipes() {
-  return useQuery({ queryKey: REC_KEY, queryFn: () => apiFetch<Recipe[]>('/recipes') });
+export function useRecipes(page = 1) {
+  return useQuery({
+    queryKey: [REC_KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<Recipe>>(`/recipes?page=${page}&limit=25`),
+  });
 }
 
 export function useRecipe(id: string) {
@@ -70,7 +74,7 @@ export function useCreateRecipe() {
   return useMutation({
     mutationFn: (data: CreateRecipePayload) =>
       apiFetch<Recipe>('/recipes', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: REC_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [REC_KEY] }),
   });
 }
 
@@ -78,7 +82,7 @@ export function useActivateRecipe(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => apiFetch<Recipe>(`/recipes/${id}/activate`, { method: 'POST' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: REC_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [REC_KEY] }),
   });
 }
 
@@ -86,14 +90,14 @@ export function useArchiveRecipe(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => apiFetch<Recipe>(`/recipes/${id}/archive`, { method: 'POST' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: REC_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [REC_KEY] }),
   });
 }
 
-export function useProductionOrders() {
+export function useProductionOrders(page = 1) {
   return useQuery({
-    queryKey: PO_KEY,
-    queryFn: () => apiFetch<ProductionOrder[]>('/production-orders'),
+    queryKey: [PO_KEY, page],
+    queryFn: () => apiFetch<PaginatedResponse<ProductionOrder>>(`/production-orders?page=${page}&limit=25`),
   });
 }
 
@@ -113,7 +117,7 @@ export function useCreateProductionOrder() {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: PO_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PO_KEY] }),
   });
 }
 
@@ -122,7 +126,7 @@ export function useStartPO(id: string) {
   return useMutation({
     mutationFn: () => apiFetch<ProductionOrder>(`/production-orders/${id}/start`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(id) });
     },
   });
@@ -146,7 +150,7 @@ export function useCompletePO(id: string) {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(id) });
     },
   });
@@ -158,7 +162,7 @@ export function useCancelPO(id: string) {
     mutationFn: () =>
       apiFetch<ProductionOrder>(`/production-orders/${id}/cancel`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: PO_KEY });
+      qc.invalidateQueries({ queryKey: [PO_KEY] });
       qc.invalidateQueries({ queryKey: poKey(id) });
     },
   });

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -70,8 +71,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function CreateSODialog({ onClose }: { onClose: () => void }) {
-  const { data: customers } = useCustomers();
-  const { data: materials } = useMaterials();
+  const { data: customersResult } = useCustomers();
+  const { data: materialsResult } = useMaterials();
   const create = useCreateSalesOrder();
 
   const {
@@ -116,7 +117,7 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
             <SelectValue placeholder="Seleccionar…" />
           </SelectTrigger>
           <SelectContent>
-            {customers?.filter((c) => c.isActive).map((c) => (
+            {customersResult?.data.filter((c) => c.isActive).map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>
@@ -169,7 +170,7 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
                         <SelectValue placeholder="Material…" />
                       </SelectTrigger>
                       <SelectContent>
-                        {materials?.map((m) => (
+                        {materialsResult?.data.map((m) => (
                           <SelectItem key={m.id} value={m.id}>
                             {m.code} — {m.name}
                           </SelectItem>
@@ -216,11 +217,12 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
 
 export default function SalesOrdersPage() {
   const router = useRouter();
-  const { data: orders, isLoading } = useSalesOrders();
-  const { data: customers } = useCustomers();
+  const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const { data: result, isLoading } = useSalesOrders(page);
+  const { data: customersResult } = useCustomers();
 
-  const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c.name]));
+  const customerMap = Object.fromEntries((customersResult?.data ?? []).map((c) => [c.id, c.name]));
 
   return (
     <div className="space-y-4">
@@ -253,14 +255,14 @@ export default function SalesOrdersPage() {
                   ))}
                 </TableRow>
               ))}
-            {!isLoading && orders?.length === 0 && (
+            {!isLoading && result?.data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Sin pedidos de venta.
                 </TableCell>
               </TableRow>
             )}
-            {orders?.map((so) => (
+            {result?.data.map((so) => (
               <TableRow key={so.id}>
                 <TableCell className="font-mono font-medium">{so.number}</TableCell>
                 <TableCell>{customerMap[so.customerId] ?? so.customerId}</TableCell>
@@ -285,6 +287,13 @@ export default function SalesOrdersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">

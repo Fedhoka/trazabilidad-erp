@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { Recipe, RecipeStatus } from './entities/recipe.entity';
 import { RecipeComponent } from './entities/recipe-component.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class RecipesService {
@@ -13,8 +14,15 @@ export class RecipesService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.recipeRepo.find({ where: { tenantId }, relations: ['components'], order: { name: 'ASC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.recipeRepo.findAndCount({
+      where: { tenantId },
+      relations: ['components'],
+      order: { name: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
@@ -9,8 +10,8 @@ export class RecipesController {
   constructor(private readonly service: RecipesService) {}
 
   @Get()
-  findAll(@CurrentUser() user: User) {
-    return this.service.findAll(user.tenantId);
+  findAll(@CurrentUser() user: User, @Query() pagination: PaginationDto) {
+    return this.service.findAll(user.tenantId, pagination);
   }
 
   @Get(':id')

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Request } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { SalesOrdersService } from './sales-orders.service';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
 
@@ -7,8 +8,8 @@ export class SalesOrdersController {
   constructor(private readonly service: SalesOrdersService) {}
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.service.findAll(req.user.tenantId);
+  findAll(@Request() req: any, @Query() pagination: PaginationDto) {
+    return this.service.findAll(req.user.tenantId, pagination);
   }
 
   @Get(':id')

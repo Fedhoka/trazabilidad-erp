@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { User, UserRole } from './entities/user.entity';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 
 type SafeUser = Omit<User, 'passwordHash'>;
 
@@ -33,12 +34,14 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
-  async findAllByTenant(tenantId: string): Promise<SafeUser[]> {
-    const users = await this.usersRepo.find({
+  async findAllByTenant(tenantId: string, { page, limit }: PaginationDto) {
+    const [users, total] = await this.usersRepo.findAndCount({
       where: { tenantId },
       order: { createdAt: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return users.map(omitHash);
+    return { data: users.map(omitHash), meta: paginateMeta(total, page, limit) };
   }
 
   async invite(dto: InviteUserDto, tenantId: string): Promise<SafeUser> {

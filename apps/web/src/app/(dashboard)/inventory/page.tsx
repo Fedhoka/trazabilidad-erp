@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Download } from 'lucide-react';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -98,13 +99,14 @@ function LotActions({ lot }: { lot: InventoryLot }) {
 
 export default function InventoryPage() {
   const [tab, setTab] = useState<FilterTab>('ALL');
+  const [page, setPage] = useState(1);
   const includeExpired = tab === 'ALL' || tab === 'EXPIRED';
-  const { data: allLots, isLoading } = useInventoryLots(includeExpired);
+  const { data: lotsResult, isLoading } = useInventoryLots(includeExpired, page);
 
-  const lots = allLots
+  const lots = lotsResult?.data
     ? tab === 'ALL'
-      ? allLots
-      : allLots.filter((l) => l.status === tab)
+      ? lotsResult.data
+      : lotsResult.data.filter((l) => l.status === tab)
     : [];
 
   return (
@@ -131,11 +133,11 @@ export default function InventoryPage() {
             }`}
           >
             {label}
-            {allLots && (
+            {lotsResult?.meta && (
               <span className="ml-1.5 text-xs text-muted-foreground">
                 {value === 'ALL'
-                  ? allLots.length
-                  : allLots.filter((l) => l.status === value).length}
+                  ? lotsResult.meta.total
+                  : lotsResult.data.filter((l) => l.status === value).length}
               </span>
             )}
           </button>
@@ -148,7 +150,7 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {!isLoading && (
+      {!isLoading && lotsResult && (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -210,6 +212,13 @@ export default function InventoryPage() {
           </Table>
         </div>
       )}
+
+      <PaginationControls
+        page={page}
+        totalPages={lotsResult?.meta.totalPages ?? 1}
+        total={lotsResult?.meta.total ?? 0}
+        onPageChange={(p) => { setPage(p); }}
+      />
     </div>
   );
 }

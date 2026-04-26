@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto';
@@ -11,8 +12,8 @@ export class ProductionOrdersController {
   constructor(private readonly service: ProductionOrdersService) {}
 
   @Get()
-  findAll(@CurrentUser() user: User) {
-    return this.service.findAll(user.tenantId);
+  findAll(@CurrentUser() user: User, @Query() pagination: PaginationDto) {
+    return this.service.findAll(user.tenantId, pagination);
   }
 
   @Get(':id')

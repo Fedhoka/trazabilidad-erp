@@ -1,6 +1,7 @@
 import {
-  Body, Controller, Get, Param, ParseUUIDPipe, Post, Request, Res, StreamableFile,
+  Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Request, Res, StreamableFile,
 } from '@nestjs/common';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import type { Response } from 'express';
 import { InvoicesService } from './invoices.service';
 import { InvoicePdfService } from './pdf/invoice-pdf.service';
@@ -14,8 +15,8 @@ export class InvoicesController {
   ) {}
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.service.findAll(req.user.tenantId);
+  findAll(@Request() req: any, @Query() pagination: PaginationDto) {
+    return this.service.findAll(req.user.tenantId, pagination);
   }
 
   @Get(':id/pdf')

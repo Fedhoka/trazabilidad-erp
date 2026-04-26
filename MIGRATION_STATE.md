@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 21 complete
+**Current phase**: ✅ Stage 22 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,17 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 22** — Pagination
+  - `PaginationDto` (`page` / `limit` with class-validator) + `paginateMeta()` helper in `apps/api/src/common/dto/pagination.dto.ts`
+  - All 10 list services updated to `findAndCount` (TypeORM repos) or parallel COUNT+SELECT (raw SQL inventory); return `{ data, meta: { total, page, limit, totalPages } }`
+  - All 10 controllers accept `PaginationDto` query params
+  - `PaginatedResponse<T>` + `PaginationMeta` types in `apps/web/src/lib/types.ts`
+  - `<PaginationControls>` component in `apps/web/src/components/ui/pagination-controls.tsx`
+  - All 9 list hooks updated to accept `page` arg, query key includes page
+  - All 9 list pages + 3 detail pages updated to use paginated results (`.data` / `.meta`)
+  - Fixed pre-existing `queryKey: PO_KEY` string bug → `[PO_KEY]` array
+  - Build clean: API (nest build) + web (17 routes).
+
 - ✅ **Stage 21** — Environment validation
   - `joi` installed
   - `src/config/env.validation.ts`: Joi schema for all env vars — DB, API, JWT (min 32 chars), AFIP (conditional: cert/key/CUIT required when AFIP_ENV ≠ mock), Redis, throttle, NODE_ENV
@@ -178,3 +189,4 @@ Stage 18: `nest build` in apps/api → clean. Docker files created; full build r
 Stage 19: `nest build` in apps/api → clean.
 Stage 20: `nest build` in apps/api → clean.
 Stage 21: `nest build` in apps/api → clean.
+Stage 22: `nest build` in apps/api → clean. `next build` in apps/web → clean, 17 routes.

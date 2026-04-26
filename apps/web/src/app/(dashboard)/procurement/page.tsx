@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -71,8 +72,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function CreatePODialog({ onClose }: { onClose: () => void }) {
-  const { data: suppliers } = useSuppliers();
-  const { data: materials } = useMaterials();
+  const { data: suppliersResult } = useSuppliers();
+  const { data: materialsResult } = useMaterials();
   const create = useCreatePurchaseOrder();
 
   const {
@@ -117,7 +118,7 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
             <SelectValue placeholder="Seleccionar…" />
           </SelectTrigger>
           <SelectContent>
-            {suppliers?.filter((s) => s.isActive).map((s) => (
+            {suppliersResult?.data.filter((s) => s.isActive).map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name}
               </SelectItem>
@@ -173,7 +174,7 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
                         <SelectValue placeholder="Material…" />
                       </SelectTrigger>
                       <SelectContent>
-                        {materials?.map((m) => (
+                        {materialsResult?.data.map((m) => (
                           <SelectItem key={m.id} value={m.id}>
                             {m.code} — {m.name}
                           </SelectItem>
@@ -232,11 +233,12 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
 
 export default function ProcurementPage() {
   const router = useRouter();
-  const { data: orders, isLoading } = usePurchaseOrders();
-  const { data: suppliers } = useSuppliers();
+  const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const { data: result, isLoading } = usePurchaseOrders(page);
+  const { data: suppliersResult } = useSuppliers();
 
-  const supplierMap = Object.fromEntries((suppliers ?? []).map((s) => [s.id, s.name]));
+  const supplierMap = Object.fromEntries((suppliersResult?.data ?? []).map((s) => [s.id, s.name]));
 
   return (
     <div className="space-y-4">
@@ -278,14 +280,14 @@ export default function ProcurementPage() {
                   ))}
                 </TableRow>
               ))}
-            {!isLoading && orders?.length === 0 && (
+            {!isLoading && result?.data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Sin órdenes de compra.
                 </TableCell>
               </TableRow>
             )}
-            {orders?.map((po) => (
+            {result?.data.map((po) => (
               <TableRow key={po.id}>
                 <TableCell className="font-mono font-medium">{po.number}</TableCell>
                 <TableCell>{supplierMap[po.supplierId] ?? po.supplierId}</TableCell>
@@ -314,6 +316,13 @@ export default function ProcurementPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">

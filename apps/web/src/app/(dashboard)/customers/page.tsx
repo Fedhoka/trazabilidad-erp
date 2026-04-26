@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
   SelectContent,
@@ -167,7 +168,8 @@ function CustomerForm({
 }
 
 export default function CustomersPage() {
-  const { data: customers, isLoading } = useCustomers();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading } = useCustomers(page);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
 
@@ -202,14 +204,14 @@ export default function CustomersPage() {
                   ))}
                 </TableRow>
               ))}
-            {!isLoading && customers?.length === 0 && (
+            {!isLoading && result?.data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Sin clientes. Creá el primero.
                 </TableCell>
               </TableRow>
             )}
-            {customers?.map((c) => (
+            {result?.data.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>{c.cuit ?? '—'}</TableCell>
@@ -232,6 +234,13 @@ export default function CustomersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={result?.meta.totalPages ?? 1}
+        total={result?.meta.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">

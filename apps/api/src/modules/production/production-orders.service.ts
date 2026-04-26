@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { ProductionOrder, ProductionOrderStatus } from './entities/production-order.entity';
@@ -20,8 +21,14 @@ export class ProductionOrdersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(tenantId: string) {
-    return this.poRepo.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+  async findAll(tenantId: string, { page, limit }: PaginationDto) {
+    const [data, total] = await this.poRepo.findAndCount({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, meta: paginateMeta(total, page, limit) };
   }
 
   async findOne(id: string, tenantId: string) {

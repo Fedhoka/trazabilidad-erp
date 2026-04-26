@@ -15,6 +15,7 @@ import {
   useActivateRecipe,
   useArchiveRecipe,
   useCreateProductionOrder,
+  type Recipe,
 } from '@/hooks/use-production';
 import { useMaterials } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -85,7 +87,7 @@ const recipeSchema = z.object({
 type RecipeFormValues = z.infer<typeof recipeSchema>;
 
 function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
-  const { data: materials } = useMaterials();
+  const { data: materialsResult } = useMaterials();
   const create = useCreateRecipe();
   const {
     register,
@@ -138,7 +140,7 @@ function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
           >
             <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
             <SelectContent>
-              {materials?.filter((m) => m.kind === 'FINISHED' || m.kind === 'WIP').map((m) => (
+              {materialsResult?.data.filter((m) => m.kind === 'FINISHED' || m.kind === 'WIP').map((m) => (
                 <SelectItem key={m.id} value={m.id}>{m.code} — {m.name}</SelectItem>
               ))}
             </SelectContent>
@@ -197,7 +199,7 @@ function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
                         <SelectValue placeholder="Material…" />
                       </SelectTrigger>
                       <SelectContent>
-                        {materials?.map((m) => (
+                        {materialsResult?.data.map((m) => (
                           <SelectItem key={m.id} value={m.id}>{m.code} — {m.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -241,7 +243,7 @@ function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
 // ─── Create Production Order Dialog ───────────────────────────────────────
 
 function CreatePODialog({ onClose }: { onClose: () => void }) {
-  const { data: recipes } = useRecipes();
+  const { data: recipesResult } = useRecipes();
   const create = useCreateProductionOrder();
   const [recipeId, setRecipeId] = useState('');
   const [plannedQty, setPlannedQty] = useState('');
@@ -267,7 +269,7 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
         <Select value={recipeId} onValueChange={(v) => v && setRecipeId(v)}>
           <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
           <SelectContent>
-            {recipes?.filter((r) => r.status === 'ACTIVE').map((r) => (
+            {recipesResult?.data.filter((r) => r.status === 'ACTIVE').map((r) => (
               <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
             ))}
           </SelectContent>
@@ -296,13 +298,15 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
 export default function ProductionPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('recipes');
+  const [recipePage, setRecipePage] = useState(1);
+  const [orderPage, setOrderPage] = useState(1);
   const [recipeOpen, setRecipeOpen] = useState(false);
   const [poOpen, setPoOpen] = useState(false);
-  const { data: recipes, isLoading: recLoading } = useRecipes();
-  const { data: orders, isLoading: poLoading } = useProductionOrders();
-  const { data: materials } = useMaterials();
+  const { data: recipesResult, isLoading: recLoading } = useRecipes(recipePage);
+  const { data: ordersResult, isLoading: poLoading } = useProductionOrders(orderPage);
+  const { data: materialsResult } = useMaterials();
 
-  const materialMap = Object.fromEntries((materials ?? []).map((m) => [m.id, m.name]));
+  const materialMap = Object.fromEntries((materialsResult?.data ?? []).map((m) => [m.id, m.name]));
 
   return (
     <div className="space-y-4">
@@ -351,9 +355,15 @@ export default function ProductionPage() {
             </Button>
           </div>
           <RecipeTable
-            recipes={recipes}
+            recipes={recipesResult?.data}
             isLoading={recLoading}
             materialMap={materialMap}
+          />
+          <PaginationControls
+            page={recipePage}
+            totalPages={recipesResult?.meta.totalPages ?? 1}
+            total={recipesResult?.meta.total ?? 0}
+            onPageChange={setRecipePage}
           />
         </div>
       )}
@@ -388,14 +398,14 @@ export default function ProductionPage() {
                       ))}
                     </TableRow>
                   ))}
-                {!poLoading && orders?.length === 0 && (
+                {!poLoading && ordersResult?.data.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Sin órdenes de producción.
                     </TableCell>
                   </TableRow>
                 )}
-                {orders?.map((o) => (
+                {ordersResult?.data.map((o) => (
                   <TableRow key={o.id}>
                     <TableCell className="font-mono font-medium">{o.number}</TableCell>
                     <TableCell>{materialMap[o.outputMaterialId] ?? o.outputMaterialId}</TableCell>
@@ -420,6 +430,12 @@ export default function ProductionPage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls
+            page={orderPage}
+            totalPages={ordersResult?.meta.totalPages ?? 1}
+            total={ordersResult?.meta.total ?? 0}
+            onPageChange={setOrderPage}
+          />
         </div>
       )}
 
@@ -445,7 +461,7 @@ function RecipeTable({
   isLoading,
   materialMap,
 }: {
-  recipes?: ReturnType<typeof useRecipes>['data'];
+  recipes?: Recipe[];
   isLoading: boolean;
   materialMap: Record<string, string>;
 }) {
@@ -492,7 +508,7 @@ function RecipeRow({
   recipe,
   materialMap,
 }: {
-  recipe: NonNullable<ReturnType<typeof useRecipes>['data']>[number];
+  recipe: Recipe;
   materialMap: Record<string, string>;
 }) {
   const activate = useActivateRecipe(recipe.id);
