@@ -5,8 +5,11 @@
     "dev:api": "pnpm --filter api start:dev",
     "dev:web": "pnpm --filter web dev",
     "build": "pnpm -r build",
-    "infra:up": "docker compose up -d",
-    "infra:down": "docker compose down"
+    "infra:up": "docker compose -f docker-compose.infra.yml up -d",
+    "infra:down": "docker compose -f docker-compose.infra.yml down",
+    "app:up": "docker compose up -d --build",
+    "app:down": "docker compose down",
+    "app:logs": "docker compose logs -f"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

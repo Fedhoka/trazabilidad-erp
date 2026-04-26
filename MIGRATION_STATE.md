@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 17 complete
+**Current phase**: ✅ Stage 18 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,15 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 18** — Docker + Compose
+  - `apps/api/Dockerfile`: 3-stage build (installer → builder with `nest build` + `pnpm deploy` → slim node:20-alpine runner)
+  - `apps/web/Dockerfile`: same pattern — `next build` + `pnpm deploy` → runner with `next start`
+  - `apps/api/.dockerignore` + `apps/web/.dockerignore`
+  - `docker-compose.yml`: full stack — postgres:16 + redis:7 + api + web; healthchecks on infra; api env overrides `DB_HOST=postgres` / `REDIS_HOST=redis`
+  - `docker-compose.infra.yml`: postgres + redis only — used by `pnpm infra:up` during local dev
+  - Root scripts: `infra:up/down` → infra-only; `app:up/down/logs` → full stack
+  - API build clean.
+
 ## Notes / blockers / decisions
 
 - Docker Desktop not installed; apps verified via pnpm build.
@@ -143,3 +152,4 @@ Stage 14: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 15: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 16: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 17: `pnpm build` in apps/api + apps/web → compiled clean, 17 routes.
+Stage 18: `nest build` in apps/api → clean. Docker files created; full build requires Docker daemon.
