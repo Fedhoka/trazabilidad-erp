@@ -66,12 +66,17 @@ export default function LoginPage() {
             {isSubmitting ? 'Ingresando…' : 'Ingresar'}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          ¿No tenés cuenta?{' '}
-          <Link href="/register" className="underline underline-offset-4">
-            Crear empresa
+        <div className="mt-4 flex flex-col items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/forgot-password" className="underline underline-offset-4">
+            ¿Olvidaste tu contraseña?
           </Link>
-        </p>
+          <p>
+            ¿No tenés cuenta?{' '}
+            <Link href="/register" className="underline underline-offset-4">
+              Crear empresa
+            </Link>
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
