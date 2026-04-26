@@ -1,0 +1,122 @@
+name: CD — Deploy to production
+
+# ─── Trigger ──────────────────────────────────────────────────────────────────
+# Fires automatically after CI succeeds on main, OR can be triggered manually
+# from the GitHub Actions tab (useful for hotfix deploys).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: production
+        type: choice
+        options: [production, staging]
+
+# ─── Secrets required (set in GitHub → Settings → Secrets) ───────────────────
+# DEPLOY_SSH_KEY       Private SSH key for the deployment server
+# DEPLOY_HOST          Hostname or IP of the server  (e.g. 1.2.3.4)
+# DEPLOY_USER          SSH username                  (e.g. deploy)
+# DEPLOY_PATH          Absolute path on server       (e.g. /opt/trazabilidad)
+# DB_PASSWORD          Production database password
+# JWT_SECRET           Production JWT secret (≥32 chars)
+# JWT_REFRESH_SECRET   Production JWT refresh secret (≥32 chars)
+# SMTP_HOST / SMTP_USER / SMTP_PASS   (optional – see .env.example)
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    # Only run when the CI workflow completed successfully
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Build & push Docker images ────────────────────────────────────────────
+      # Uncomment and configure one of the registry blocks below:
+
+      # Option A — Docker Hub
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Option B — GitHub Container Registry (ghcr.io)
+      # - name: Login to GHCR
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Build & push API image
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     file: apps/api/Dockerfile
+      #     push: true
+      #     tags: |
+      #       ghcr.io/${{ github.repository }}/api:latest
+      #       ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+
+      # ── Deploy via SSH ────────────────────────────────────────────────────────
+      # This step SSHs into the production server, pulls the latest images,
+      # and restarts the stack with docker compose.
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Pull latest code
+            git pull origin main
+
+            # Write production .env (secrets injected from GitHub)
+            cat > apps/api/.env <<EOF
+            NODE_ENV=production
+            DB_HOST=postgres
+            DB_PORT=5432
+            DB_USER=trazabilidad
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=trazabilidad
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            JWT_EXPIRES_IN=15m
+            JWT_REFRESH_EXPIRES_IN=7d
+            AFIP_ENV=mock
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+            APP_URL=https://${{ secrets.DEPLOY_HOST }}
+            EOF
+
+            # Pull new images and restart
+            docker compose pull
+            docker compose up -d --build --remove-orphans
+
+            # Run pending DB migrations (idempotent)
+            docker compose exec -T api node dist/main --migrate-only || true
+
+            echo "Deploy complete: $(date)"
+
+      - name: Notify success
+        if: success()
+        run: echo "✅ Deploy to ${{ github.event.inputs.environment || 'production' }} succeeded"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "❌ Deploy FAILED — check the logs above"

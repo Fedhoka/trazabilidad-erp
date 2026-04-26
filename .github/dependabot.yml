@@ -1,0 +1,33 @@
+version: 2
+
+updates:
+  # Keep GitHub Actions up-to-date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci(deps)"
+
+  # API dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(api/deps)"
+    ignore:
+      # Avoid major version bumps automatically — review manually
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Web dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(web/deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
