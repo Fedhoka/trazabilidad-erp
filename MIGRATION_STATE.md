@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 10 complete
+**Current phase**: ✅ Stage 17 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -109,6 +109,18 @@
   - Frontend: `useChangePassword` hook; `ChangePasswordSection` on `/users` page with current + new + confirm fields, Zod match validation
   - Build clean: API + web (18 routes).
 
+- ✅ **Stage 17** — Automated lot expiry scheduler
+  - `@nestjs/schedule` installed; `ScheduleModule.forRoot()` registered in `AppModule`
+  - `LotExpiryService`: `@Cron(EVERY_HOUR)` → bulk UPDATE AVAILABLE/QUARANTINE lots past `expires_on` → EXPIRED; logs count
+  - `SchedulerModule` registered in `AppModule`
+  - `InventoryService`: `findLots(tenantId, includeExpired?)` + new `expiringSoon(tenantId, days=7)`
+  - `InventoryController`: `GET /inventory/lots?includeExpired=true`, `GET /inventory/expiring-soon`
+  - `DashboardService`: added `expiring_soon` subquery (lots expiring within 7 days) → `expiringSoon` in KPI response
+  - Frontend: `DashboardKpis` + `useInventoryLots(includeExpired)` + `useExpiringSoon()` hook
+  - `/dashboard`: "Lotes por vencer (7 d)" KPI card with AlertTriangle icon
+  - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
+  - Build clean: API + web (17 routes).
+
 ## Notes / blockers / decisions
 
 - Docker Desktop not installed; apps verified via pnpm build.
@@ -130,3 +142,4 @@ Stage 13: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 14: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 15: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
 Stage 16: `pnpm build` in apps/api + apps/web → compiled clean, 18 routes.
+Stage 17: `pnpm build` in apps/api + apps/web → compiled clean, 17 routes.

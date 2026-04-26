@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useInventoryLots, useUpdateLotStatus, type InventoryLot } from '@/hooks/use-dashboard';
 import { downloadReport } from '@/lib/api';
@@ -18,12 +19,14 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'dest
   AVAILABLE: 'default',
   QUARANTINE: 'secondary',
   BLOCKED: 'destructive',
+  EXPIRED: 'outline',
 };
 
 const STATUS_LABEL: Record<string, string> = {
   AVAILABLE: 'Disponible',
   QUARANTINE: 'Cuarentena',
   BLOCKED: 'Bloqueado',
+  EXPIRED: 'Vencido',
 };
 
 const STATUS_ACTIONS: Record<string, { label: string; next: string }[]> = {
@@ -40,6 +43,16 @@ const STATUS_ACTIONS: Record<string, { label: string; next: string }[]> = {
     { label: 'Poner en cuarentena', next: 'QUARANTINE' },
   ],
 };
+
+type FilterTab = 'ALL' | 'AVAILABLE' | 'QUARANTINE' | 'BLOCKED' | 'EXPIRED';
+
+const TABS: { value: FilterTab; label: string }[] = [
+  { value: 'ALL', label: 'Todos' },
+  { value: 'AVAILABLE', label: 'Disponible' },
+  { value: 'QUARANTINE', label: 'Cuarentena' },
+  { value: 'BLOCKED', label: 'Bloqueado' },
+  { value: 'EXPIRED', label: 'Vencido' },
+];
 
 function expiryClass(expiresOn: string | null): string {
   if (!expiresOn) return '';
@@ -84,7 +97,15 @@ function LotActions({ lot }: { lot: InventoryLot }) {
 }
 
 export default function InventoryPage() {
-  const { data: lots, isLoading } = useInventoryLots();
+  const [tab, setTab] = useState<FilterTab>('ALL');
+  const includeExpired = tab === 'ALL' || tab === 'EXPIRED';
+  const { data: allLots, isLoading } = useInventoryLots(includeExpired);
+
+  const lots = allLots
+    ? tab === 'ALL'
+      ? allLots
+      : allLots.filter((l) => l.status === tab)
+    : [];
 
   return (
     <div className="space-y-4">
@@ -97,13 +118,37 @@ export default function InventoryPage() {
         </Button>
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex gap-1 border-b pb-0">
+        {TABS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setTab(value)}
+            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === value
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+            {allLots && (
+              <span className="ml-1.5 text-xs text-muted-foreground">
+                {value === 'ALL'
+                  ? allLots.length
+                  : allLots.filter((l) => l.status === value).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
         </div>
       )}
 
-      {!isLoading && lots && (
+      {!isLoading && (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -122,12 +167,12 @@ export default function InventoryPage() {
               {lots.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    Sin lotes disponibles.
+                    Sin lotes en esta categoría.
                   </TableCell>
                 </TableRow>
               )}
               {lots.map((lot: InventoryLot) => (
-                <TableRow key={lot.id}>
+                <TableRow key={lot.id} className={lot.status === 'EXPIRED' ? 'opacity-50' : ''}>
                   <TableCell>
                     <p className="font-medium">{lot.materialName}</p>
                     <p className="text-xs text-muted-foreground font-mono">{lot.materialCode}</p>

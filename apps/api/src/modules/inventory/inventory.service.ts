@@ -4,32 +4,53 @@ import { LotStatus } from './entities/material-lot.entity';
 
 const CHANGEABLE = new Set<LotStatus>([LotStatus.QUARANTINE, LotStatus.BLOCKED, LotStatus.AVAILABLE]);
 
+const LOT_SELECT = `
+  SELECT
+    ml.id,
+    ml.lot_code       AS "lotCode",
+    ml.quantity,
+    ml.unit_cost      AS "unitCost",
+    ml.status,
+    ml.expires_on     AS "expiresOn",
+    ml.received_at    AS "receivedAt",
+    m.name            AS "materialName",
+    m.code            AS "materialCode",
+    m.base_uom        AS "baseUom",
+    l.name            AS "locationName",
+    l.code            AS "locationCode"
+  FROM material_lots ml
+  JOIN materials  m ON m.id = ml.material_id
+  LEFT JOIN locations l ON l.id = ml.location_id`;
+
 @Injectable()
 export class InventoryService {
   constructor(private readonly ds: DataSource) {}
 
-  async findLots(tenantId: string) {
+  async findLots(tenantId: string, includeExpired = false) {
+    const statusFilter = includeExpired
+      ? `ml.status IN ('AVAILABLE', 'QUARANTINE', 'BLOCKED', 'EXPIRED')`
+      : `ml.status IN ('AVAILABLE', 'QUARANTINE', 'BLOCKED')`;
+
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT
-         ml.id,
-         ml.lot_code       AS "lotCode",
-         ml.quantity,
-         ml.unit_cost      AS "unitCost",
-         ml.status,
-         ml.expires_on     AS "expiresOn",
-         ml.received_at    AS "receivedAt",
-         m.name            AS "materialName",
-         m.code            AS "materialCode",
-         m.base_uom        AS "baseUom",
-         l.name            AS "locationName",
-         l.code            AS "locationCode"
-       FROM material_lots ml
-       JOIN materials  m ON m.id = ml.material_id
-       LEFT JOIN locations l ON l.id = ml.location_id
+      `${LOT_SELECT}
        WHERE ml.tenant_id = $1
-         AND ml.status IN ('AVAILABLE', 'QUARANTINE', 'BLOCKED')
+         AND ${statusFilter}
        ORDER BY ml.expires_on ASC NULLS LAST, ml.received_at DESC`,
       [tenantId],
+    );
+  }
+
+  /** Lots expiring within the next `days` calendar days (default 7). */
+  async expiringSoon(tenantId: string, days = 7) {
+    return this.ds.query<Record<string, unknown>[]>(
+      `${LOT_SELECT}
+       WHERE ml.tenant_id = $1
+         AND ml.status IN ('AVAILABLE', 'QUARANTINE')
+         AND ml.expires_on IS NOT NULL
+         AND ml.expires_on >= NOW()
+         AND ml.expires_on <= NOW() + ($2 || ' days')::interval
+       ORDER BY ml.expires_on ASC`,
+      [tenantId, days],
     );
   }
 

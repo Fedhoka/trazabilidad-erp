@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Truck, Package, Layers, ShoppingCart, Factory, Users, FileText, Receipt, Settings,
-  BoxIcon, TrendingUp, ClipboardList, RefreshCw,
+  BoxIcon, TrendingUp, ClipboardList, RefreshCw, AlertTriangle,
 } from 'lucide-react';
 
 const quickLinks = [
@@ -76,6 +76,7 @@ export default function DashboardPage() {
         <KpiCard label="Producción en curso" value={kpis?.inProgressOrders} icon={RefreshCw} />
         <KpiCard label="Facturas del mes" value={kpis?.monthInvoiceCount} icon={ClipboardList} />
         <KpiCard label="Facturado este mes" value={kpis?.monthInvoiceTotal} icon={Receipt} format="currency" />
+        <KpiCard label="Lotes por vencer (7 d)" value={kpis?.expiringSoon} icon={AlertTriangle} />
       </div>
 
       <div>

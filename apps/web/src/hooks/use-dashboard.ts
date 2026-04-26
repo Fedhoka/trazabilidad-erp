@@ -9,6 +9,7 @@ export interface DashboardKpis {
   inProgressOrders: number;
   monthInvoiceCount: number;
   monthInvoiceTotal: number;
+  expiringSoon: number;
 }
 
 export interface InventoryLot {
@@ -33,10 +34,18 @@ export function useDashboardKpis() {
   });
 }
 
-export function useInventoryLots() {
+export function useInventoryLots(includeExpired = false) {
   return useQuery({
-    queryKey: ['inventory', 'lots'],
-    queryFn: () => apiFetch<InventoryLot[]>('/inventory/lots'),
+    queryKey: ['inventory', 'lots', includeExpired],
+    queryFn: () =>
+      apiFetch<InventoryLot[]>(`/inventory/lots${includeExpired ? '?includeExpired=true' : ''}`),
+  });
+}
+
+export function useExpiringSoon() {
+  return useQuery({
+    queryKey: ['inventory', 'expiring-soon'],
+    queryFn: () => apiFetch<InventoryLot[]>('/inventory/expiring-soon'),
   });
 }
 

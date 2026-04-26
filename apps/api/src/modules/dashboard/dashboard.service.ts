@@ -38,7 +38,15 @@ export class DashboardService {
            FROM invoices
           WHERE tenant_id = $1
             AND status = 'AUTHORIZED'
-            AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())) AS month_invoice_total`,
+            AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())) AS month_invoice_total,
+
+        (SELECT COUNT(*)
+           FROM material_lots
+          WHERE tenant_id = $1
+            AND status IN ('AVAILABLE', 'QUARANTINE')
+            AND expires_on IS NOT NULL
+            AND expires_on >= NOW()
+            AND expires_on <= NOW() + INTERVAL '7 days') AS expiring_soon`,
       [tenantId],
     );
 
@@ -51,6 +59,7 @@ export class DashboardService {
       inProgressOrders: Number(r.in_progress_orders),
       monthInvoiceCount: Number(r.month_invoice_count),
       monthInvoiceTotal: Number(r.month_invoice_total),
+      expiringSoon: Number(r.expiring_soon),
     };
   }
 }
