@@ -70,6 +70,14 @@ export class UsersService {
     await this.usersRepo.save(user);
   }
 
+  /** Used by the password-reset flow — no current-password verification required. */
+  async forceResetPassword(id: string, newPassword: string): Promise<void> {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    user.passwordHash = await argon2.hash(newPassword);
+    await this.usersRepo.save(user);
+  }
+
   async setActive(id: string, isActive: boolean, tenantId: string): Promise<SafeUser> {
     const user = await this.usersRepo.findOne({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('User not found');

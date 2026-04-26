@@ -38,6 +38,16 @@ export class RedisService implements OnModuleDestroy {
     await this.client.set(key, value, 'EX', ttlSeconds).catch(() => undefined);
   }
 
+  async get(key: string): Promise<string | null> {
+    if (!this.available) return null;
+    return this.client.get(key).catch(() => null);
+  }
+
+  async del(key: string): Promise<void> {
+    if (!this.available) return;
+    await this.client.del(key).catch(() => undefined);
+  }
+
   async exists(key: string): Promise<boolean> {
     if (!this.available) return false;
     return (await this.client.exists(key).catch(() => 0)) > 0;

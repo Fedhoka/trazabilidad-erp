@@ -4,6 +4,8 @@ import { Public } from '../../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 // Auth endpoints are public but brute-force-sensitive: 10 requests / minute.
 @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -33,5 +35,20 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   logout(@Body('refreshToken') token: string) {
     return this.authService.logout(token ?? '');
+  }
+
+  /** Always returns 204 — never reveals whether the email is registered. */
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 }

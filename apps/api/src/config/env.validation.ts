@@ -72,4 +72,14 @@ export const envValidationSchema = Joi.object({
 
   // ── PDF / Company ──────────────────────────────────────────────────────────
   COMPANY_ADDRESS: Joi.string().optional(),
+
+  // ── Email / SMTP ───────────────────────────────────────────────────────────
+  // All optional — if SMTP_HOST is absent, emails are logged to console (dev).
+  SMTP_HOST: Joi.string().optional(),
+  SMTP_PORT: Joi.number().integer().default(587),
+  SMTP_SECURE: Joi.boolean().default(false),
+  SMTP_USER: Joi.string().optional(),
+  SMTP_PASS: Joi.string().optional(),
+  EMAIL_FROM: Joi.string().optional(),
+  APP_URL: Joi.string().uri().default('http://localhost:3000'),
 });

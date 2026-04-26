@@ -6,11 +6,14 @@ import * as crypto from 'crypto';
 import { TenantsService } from '../tenants/tenants.service';
 import { UsersService } from '../users/users.service';
 import { RedisService } from '../redis/redis.service';
+import { EmailService } from '../email/email.service';
 import { UserRole } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 
 const BLOCKLIST_PREFIX = 'rt:bl:';
+const RESET_PREFIX = 'pwd:reset:';
+const RESET_TTL_SECONDS = 3_600; // 1 hour
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly redis: RedisService,
+    private readonly email: EmailService,
   ) {}
 
   async registerTenant(dto: RegisterTenantDto) {
@@ -42,7 +46,10 @@ export class AuthService {
       tenantId: tenant.id,
     });
 
-    return this.issueTokens(user);
+    const tokens = this.issueTokens(user);
+    // Fire-and-forget — never delay the registration response for email
+    void this.email.sendWelcome(user.email, tenant.name);
+    return tokens;
   }
 
   async login(dto: LoginDto) {
@@ -82,6 +89,30 @@ export class AuthService {
     } catch {
       // Non-fatal — client should clear tokens regardless
     }
+  }
+
+  /**
+   * Sends a password-reset link. Always returns 204 regardless of whether
+   * the email exists — this prevents user enumeration.
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) return; // silent — do not reveal existence
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const hash = this.tokenHash(token);
+    await this.redis.set(RESET_PREFIX + hash, user.id, RESET_TTL_SECONDS);
+    void this.email.sendPasswordReset(email, token);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const hash = this.tokenHash(token);
+    const userId = await this.redis.get(RESET_PREFIX + hash);
+    if (!userId) throw new BadRequestException('Token inválido o expirado');
+
+    await this.usersService.forceResetPassword(userId, newPassword);
+    // Invalidate so the same token cannot be reused
+    await this.redis.del(RESET_PREFIX + hash);
   }
 
   private tokenHash(token: string): string {

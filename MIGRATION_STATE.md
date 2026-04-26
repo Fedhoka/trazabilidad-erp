@@ -2,7 +2,7 @@
 
 **Project root**: `C:\Users\catal\OneDrive\Escritorio\PROYECTOS\trazabilidad`
 **Last updated**: 2026-04-26
-**Current phase**: ✅ Stage 24 complete
+**Current phase**: ✅ Stage 25 complete
 
 ## Legend
 - 🔜 NEXT — about to execute
@@ -121,6 +121,19 @@
   - `/inventory`: status-filter tab bar (Todos / Disponible / Cuarentena / Bloqueado / Vencido) with per-tab counts; EXPIRED rows shown at 50% opacity; `includeExpired` only fetched when needed
   - Build clean: API + web (17 routes).
 
+- ✅ **Stage 25** — Email (Nodemailer)
+  - `nodemailer` (runtime) + `@types/nodemailer` (dev) installed
+  - `EmailModule` (`@Global`) — `EmailService` with `sendWelcome()` + `sendPasswordReset()`
+  - Dev fallback: if `SMTP_HOST` is absent, emails are logged to console — zero config required locally
+  - Errors are caught and logged, never bubble up to the request
+  - `AuthService.registerTenant()`: sends welcome email fire-and-forget after signup
+  - `AuthService.forgotPassword()`: generates reset token (32-byte random hex), stores hash in Redis (1 h TTL), sends reset link
+  - `AuthService.resetPassword()`: verifies token from Redis, calls `UsersService.forceResetPassword()`, deletes token
+  - `POST /auth/forgot-password` + `POST /auth/reset-password` — both `@Public()`; forgot always returns 204 (no user enumeration)
+  - `RedisService`: added `get()` + `del()` methods
+  - `env.validation.ts` + `.env.example`: SMTP_HOST/PORT/SECURE/USER/PASS, EMAIL_FROM, APP_URL — all optional
+  - Build clean.
+
 - ✅ **Stage 24** — Structured logging (Pino)
   - `nestjs-pino`, `pino-http` installed (runtime); `pino-pretty` (devDependency)
   - `LoggerModule.forRootAsync` in `AppModule`: JSON in production, pino-pretty in dev
@@ -209,3 +222,4 @@ Stage 21: `nest build` in apps/api → clean.
 Stage 22: `nest build` in apps/api → clean. `next build` in apps/web → clean, 17 routes.
 Stage 23: `nest build` in apps/api → clean.
 Stage 24: `nest build` in apps/api → clean.
+Stage 25: `nest build` in apps/api → clean.
