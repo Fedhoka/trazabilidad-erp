@@ -82,4 +82,9 @@ export const envValidationSchema = Joi.object({
   SMTP_PASS: Joi.string().optional(),
   EMAIL_FROM: Joi.string().optional(),
   APP_URL: Joi.string().uri().default('http://localhost:3000'),
+
+  // ── Sentry ─────────────────────────────────────────────────────────────────
+  // Optional — if absent, Sentry is disabled (no errors, no noise in dev/CI).
+  SENTRY_DSN: Joi.string().uri().optional(),
+  SENTRY_ENVIRONMENT: Joi.string().optional(),
 });

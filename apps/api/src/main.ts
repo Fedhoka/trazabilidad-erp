@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -5,6 +6,17 @@ import { DataSource } from 'typeorm';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+
+// Initialise Sentry as early as possible — before any imports that might
+// throw.  If SENTRY_DSN is absent (dev / test), the SDK is a no-op.
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
+  // Capture 100% of transactions in production; tune down if volume is high.
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 0,
+  // Never send events when DSN is absent (local dev / CI).
+  enabled: !!process.env.SENTRY_DSN,
+});
 
 async function bootstrap() {
   // bufferLogs=true: NestJS queues early log calls until Pino is ready,
