@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: trazabilidad
       POSTGRES_PASSWORD: trazabilidad
       POSTGRES_DB: trazabilidad
+    # Port exposed for direct dev access — remove in production if desired
     ports: ["5432:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -33,7 +34,8 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
-    ports: ["4000:4000"]
+    # Port NOT exposed to host — Nginx proxies to it internally
+    expose: ["4000"]
     env_file: apps/api/.env
     environment:
       DB_HOST: postgres
@@ -46,7 +48,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/v1/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -57,11 +59,59 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     restart: unless-stopped
-    ports: ["3000:3000"]
+    # Port NOT exposed to host — Nginx proxies to it internally
+    expose: ["3000"]
     env_file: apps/web/.env
     depends_on:
       api:
         condition: service_healthy
 
+  # ── Nginx reverse proxy + SSL termination ─────────────────────────────────
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Let's Encrypt certificates (written by certbot, read by nginx)
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Certbot ACME challenge webroot
+      - certbot_www:/var/www/certbot:ro
+    environment:
+      # envsubst replaces ${DOMAIN} in app.conf at container start
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      - api
+      - web
+    # Apply environment variable substitution to the config at startup,
+    # then start Nginx.
+    command: >
+      /bin/sh -c
+      "envsubst '$$DOMAIN' < /etc/nginx/conf.d/app.conf > /tmp/app.conf
+      && cp /tmp/app.conf /etc/nginx/conf.d/app.conf
+      && nginx -g 'daemon off;'"
+
+  # ── Certbot — auto-renews Let's Encrypt certs every 12 hours ─────────────
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # Check for renewal every 12 hours; exits immediately if not due
+    entrypoint: >
+      /bin/sh -c
+      "trap exit TERM; while :; do
+        certbot renew --webroot --webroot-path=/var/www/certbot --quiet;
+        sleep 12h & wait $${!};
+      done"
+    profiles:
+      # Only run certbot in production (docker compose --profile production up)
+      - production
+
 volumes:
   pgdata:
+  certbot_www:

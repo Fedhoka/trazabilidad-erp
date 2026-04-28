@@ -1,0 +1,22 @@
+# ── Development overrides ─────────────────────────────────────────────────────
+# Re-expose API and web ports directly on the host so you can:
+#   - Browse http://localhost:3000 (web) without going through Nginx
+#   - Hit  http://localhost:4000 (API / Swagger) directly
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# The root docker-compose.yml is the production config (Nginx on 80/443).
+# This overlay is for local development only — never deploy with it.
+
+services:
+  api:
+    ports: ["4000:4000"]
+
+  web:
+    ports: ["3000:3000"]
+
+  nginx:
+    profiles:
+      # Disable nginx in dev so it doesn't fight for port 80
+      - nginx-dev-disabled

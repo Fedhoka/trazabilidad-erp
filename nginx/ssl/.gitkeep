@@ -1,0 +1,4 @@
+# This directory is mounted as a Docker volume at runtime.
+# Certbot writes Let's Encrypt certificates here.
+# Run scripts/init-letsencrypt.sh once on the server to obtain the first cert.
+# Renewal is handled automatically by the certbot container (every 12 hours).
