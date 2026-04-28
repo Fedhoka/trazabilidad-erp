@@ -21,10 +21,10 @@ export class AuditLog {
   tenantId: string;
 
   /** User who performed the action (null for system/scheduled tasks). */
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'user_id', type: 'text', nullable: true })
   userId: string | null;
 
-  @Column({ name: 'user_email', nullable: true })
+  @Column({ name: 'user_email', type: 'text', nullable: true })
   userEmail: string | null;
 
   @Column({ type: 'enum', enum: AuditAction })
@@ -34,14 +34,14 @@ export class AuditLog {
   @Column()
   entity: string;
 
-  @Column({ name: 'entity_id', nullable: true })
+  @Column({ name: 'entity_id', type: 'text', nullable: true })
   entityId: string | null;
 
   /** Arbitrary JSON snapshot / diff — what was sent in the request body. */
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, unknown> | null;
 
-  @Column({ name: 'ip_address', nullable: true })
+  @Column({ name: 'ip_address', type: 'text', nullable: true })
   ipAddress: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

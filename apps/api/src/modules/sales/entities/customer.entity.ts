@@ -13,22 +13,22 @@ export class Customer extends TenantEntity {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   cuit: string | null;
 
   @Column({ name: 'condicion_iva', type: 'enum', enum: CondicionIva })
   condicionIva: CondicionIva;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   address: string | null;
 
-  @Column({ name: 'contact_name', nullable: true })
+  @Column({ name: 'contact_name', type: 'text', nullable: true })
   contactName: string | null;
 
-  @Column({ name: 'contact_email', nullable: true })
+  @Column({ name: 'contact_email', type: 'text', nullable: true })
   contactEmail: string | null;
 
-  @Column({ name: 'contact_phone', nullable: true })
+  @Column({ name: 'contact_phone', type: 'text', nullable: true })
   contactPhone: string | null;
 
   @Column({ name: 'is_active', default: true })

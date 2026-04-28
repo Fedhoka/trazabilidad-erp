@@ -22,7 +22,7 @@ export class Material extends TenantEntity {
   @Column({ name: 'base_uom' })
   baseUom: string;
 
-  @Column({ name: 'shelf_life_days', nullable: true })
+  @Column({ name: 'shelf_life_days', type: 'int', nullable: true })
   shelfLifeDays: number | null;
 
   @Column({ name: 'avg_cost', type: 'decimal', precision: 14, scale: 4, default: 0 })

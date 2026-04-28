@@ -10,7 +10,7 @@ export class GoodsReceipt extends TenantEntity {
   @Column({ name: 'received_at', type: 'timestamptz' })
   receivedAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes: string | null;
 
   @OneToMany(() => GoodsReceiptLine, (l) => l.goodsReceipt)

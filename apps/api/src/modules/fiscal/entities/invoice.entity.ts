@@ -22,7 +22,7 @@ export class Invoice extends TenantEntity {
   @Column({ name: 'customer_id' })
   customerId: string;
 
-  @Column({ name: 'sales_order_id', nullable: true })
+  @Column({ name: 'sales_order_id', type: 'text', nullable: true })
   salesOrderId: string | null;
 
   @Column({ name: 'invoice_type', type: 'enum', enum: InvoiceType })
@@ -43,7 +43,7 @@ export class Invoice extends TenantEntity {
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.DRAFT })
   status: InvoiceStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   cae: string | null;
 
   @Column({ name: 'cae_expires_on', type: 'date', nullable: true })

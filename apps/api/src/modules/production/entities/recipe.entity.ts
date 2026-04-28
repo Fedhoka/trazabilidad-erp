@@ -28,7 +28,7 @@ export class Recipe extends TenantEntity {
   @Column({ default: 1 })
   version: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes: string | null;
 
   @OneToMany(() => RecipeComponent, (c) => c.recipe)

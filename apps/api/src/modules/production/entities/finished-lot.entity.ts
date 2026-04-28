@@ -25,6 +25,6 @@ export class FinishedLot extends TenantEntity {
   @Column({ name: 'expires_on', type: 'date', nullable: true })
   expiresOn: Date | null;
 
-  @Column({ name: 'location_id', nullable: true })
+  @Column({ name: 'location_id', type: 'text', nullable: true })
   locationId: string | null;
 }

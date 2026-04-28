@@ -38,9 +38,9 @@ export class GoodsReceiptLine extends TenantEntity {
   @Column({ type: 'enum', enum: QcStatus, default: QcStatus.PENDING })
   qcStatus: QcStatus;
 
-  @Column({ name: 'qc_notes', nullable: true })
+  @Column({ name: 'qc_notes', type: 'text', nullable: true })
   qcNotes: string | null;
 
-  @Column({ name: 'material_lot_id', nullable: true })
+  @Column({ name: 'material_lot_id', type: 'text', nullable: true })
   materialLotId: string | null;
 }

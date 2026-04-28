@@ -17,10 +17,10 @@ export class MaterialLot extends TenantEntity {
   @Column({ name: 'material_id' })
   materialId: string;
 
-  @Column({ name: 'supplier_id', nullable: true })
+  @Column({ name: 'supplier_id', type: 'text', nullable: true })
   supplierId: string | null;
 
-  @Column({ name: 'goods_receipt_line_id', nullable: true })
+  @Column({ name: 'goods_receipt_line_id', type: 'text', nullable: true })
   goodsReceiptLineId: string | null;
 
   @Column({ type: 'decimal', precision: 14, scale: 4 })
@@ -32,7 +32,7 @@ export class MaterialLot extends TenantEntity {
   @Column({ type: 'enum', enum: LotStatus, default: LotStatus.AVAILABLE })
   status: LotStatus;
 
-  @Column({ name: 'location_id', nullable: true })
+  @Column({ name: 'location_id', type: 'text', nullable: true })
   locationId: string | null;
 
   @Column({ name: 'expires_on', type: 'date', nullable: true })

@@ -9,6 +9,6 @@ export class Shipment extends TenantEntity {
   @Column({ name: 'shipped_at', type: 'timestamptz' })
   shippedAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes: string | null;
 }

@@ -20,6 +20,6 @@ export class SalesOrder extends TenantEntity {
   @Column({ type: 'enum', enum: SalesOrderStatus, default: SalesOrderStatus.DRAFT })
   status: SalesOrderStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes: string | null;
 }

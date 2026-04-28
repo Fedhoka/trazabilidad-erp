@@ -21,7 +21,7 @@ export class PurchaseOrder extends TenantEntity {
   @Column({ type: 'enum', enum: PurchaseOrderStatus, default: PurchaseOrderStatus.DRAFT })
   status: PurchaseOrderStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes: string | null;
 
   @OneToMany(() => PurchaseOrderLine, (l) => l.purchaseOrder, { cascade: ['insert'] })
