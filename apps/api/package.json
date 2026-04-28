@@ -50,7 +50,7 @@
     "joi": "^18.1.2",
     "nestjs-pino": "^4.6.1",
     "node-forge": "^1.4.0",
-    "nodemailer": "^8.0.6",
+    "nodemailer": "^8.0.7",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.18.0",
