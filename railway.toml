@@ -1,0 +1,13 @@
+# Railway configuration — API service
+# Deploy via: railway.app → New Project → Deploy from GitHub → select trazabilidad-erp
+# Then add PostgreSQL and Redis plugins from the Railway dashboard.
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 60
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
