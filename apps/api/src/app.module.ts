@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'crypto';
+import { join } from 'path';
 import { envValidationSchema } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -95,6 +96,7 @@ import { RolesGuard } from './common/guards/roles.guard';
         synchronize: false, // always use migrations — never enable in production
         logging: cfg.get('DB_LOGGING') === 'true',
         autoLoadEntities: true,
+        migrations: [join(__dirname, 'database/migrations/*.{ts,js}')],
       }),
     }),
 
