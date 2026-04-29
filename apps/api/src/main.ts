@@ -82,7 +82,10 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(process.env.API_PORT ?? 4000);
-  logger.log(`Application running on port ${process.env.API_PORT ?? 4000}`);
+  // Use Railway's PORT env var when present, fall back to API_PORT or 4000.
+  // Bind to 0.0.0.0 so the app is reachable from Railway's network proxy.
+  const port = parseInt(process.env.PORT ?? process.env.API_PORT ?? '4000', 10);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Application running on 0.0.0.0:${port}`);
 }
 bootstrap();
