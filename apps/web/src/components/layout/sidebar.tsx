@@ -21,6 +21,7 @@ import {
   Sprout,
   BarChart3,
   Calculator,
+  Scale,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -48,6 +49,7 @@ const navSections: NavSection[] = [
     items: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/stats', label: 'Estadísticas', icon: BarChart3 },
+      { href: '/break-even', label: 'Punto de equilibrio', icon: Scale },
     ],
   },
   {

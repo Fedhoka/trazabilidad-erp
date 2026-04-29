@@ -158,6 +158,33 @@ export function useSalesAnalytics() {
   });
 }
 
+// ── Break-even ───────────────────────────────────────────────────────────
+export interface BreakEvenAnalysis {
+  windowMonths: number;
+  monthlyFixedCosts: number;
+  windowRevenue: number;
+  windowCosts: number;
+  windowUnits: number;
+  /** Margin % over the window. null = no revenue at all. */
+  avgMarginPercent: number | null;
+  avgUnitPrice: number | null;
+  avgUnitCost: number | null;
+  contributionPerUnit: number | null;
+  breakEvenRevenue: number | null;
+  breakEvenUnits: number | null;
+  currentMonthlyRevenue: number;
+  /** currentMonthlyRevenue / breakEvenRevenue. >=1 covers fixed costs. */
+  coverage: number | null;
+}
+
+export function useBreakEven(months = 12) {
+  return useQuery({
+    queryKey: ['dashboard', 'break-even', months],
+    queryFn: () =>
+      apiFetch<BreakEvenAnalysis>(`/dashboard/break-even?months=${months}`),
+  });
+}
+
 export function useInventoryLots(includeExpired = false, page = 1) {
   return useQuery({
     queryKey: ['inventory', 'lots', includeExpired, page],
