@@ -20,6 +20,7 @@ import {
   ChevronsRight,
   Sprout,
   BarChart3,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -75,6 +76,7 @@ const navSections: NavSection[] = [
   {
     label: 'Sistema',
     items: [
+      { href: '/fixed-costs', label: 'Costos fijos', icon: Calculator },
       { href: '/users', label: 'Usuarios', icon: Settings },
       { href: '/audit', label: 'Auditoría', icon: ClipboardList, ownerOnly: true },
     ],

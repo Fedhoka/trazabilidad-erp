@@ -19,6 +19,8 @@ const ROUTE_NAMES: Record<string, string> = {
   customers: 'Clientes',
   'sales-orders': 'Ventas',
   fiscal: 'Fiscal',
+  'fixed-costs': 'Costos fijos',
+  'break-even': 'Punto de equilibrio',
   users: 'Usuarios',
   audit: 'Auditoría',
 };
