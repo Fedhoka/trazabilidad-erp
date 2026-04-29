@@ -67,6 +67,53 @@ export function useDashboardStats(months = 12) {
   });
 }
 
+// ── Inventory analytics ───────────────────────────────────────────────────
+export type MaterialKind = 'RAW' | 'PACKAGING' | 'WIP' | 'FINISHED';
+
+export interface StockByKindEntry {
+  kind: MaterialKind;
+  value: number;
+  lots: number;
+  units: number;
+}
+
+export interface LowStockEntry {
+  id: string;
+  code: string;
+  name: string;
+  kind: MaterialKind;
+  baseUom: string;
+  available: number;
+}
+
+export interface ExpiringDayEntry {
+  date: string; // YYYY-MM-DD
+  count: number;
+  value: number;
+}
+
+export interface InventoryAnalytics {
+  stockByKind: StockByKindEntry[];
+  lowStock: LowStockEntry[];
+  expiringByDay: ExpiringDayEntry[];
+  expiringBuckets: {
+    within7: number;
+    within14: number;
+    within30: number;
+    value7: number;
+    value14: number;
+    value30: number;
+  };
+}
+
+export function useInventoryAnalytics() {
+  return useQuery({
+    queryKey: ['dashboard', 'inventory-analytics'],
+    queryFn: () =>
+      apiFetch<InventoryAnalytics>('/dashboard/inventory-analytics'),
+  });
+}
+
 export function useInventoryLots(includeExpired = false, page = 1) {
   return useQuery({
     queryKey: ['inventory', 'lots', includeExpired, page],

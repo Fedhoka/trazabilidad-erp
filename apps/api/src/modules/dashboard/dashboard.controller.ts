@@ -21,4 +21,13 @@ export class DashboardController {
   getStats(@CurrentUser() user: User, @Query() query: StatsQueryDto) {
     return this.service.getStats(user.tenantId, query.months ?? 12);
   }
+
+  /**
+   * Inventory analytics: stock value by kind, lowest-stock materials,
+   * and expiring lots breakdown for the next 30 days.
+   */
+  @Get('inventory-analytics')
+  getInventoryAnalytics(@CurrentUser() user: User) {
+    return this.service.getInventoryAnalytics(user.tenantId);
+  }
 }

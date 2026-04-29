@@ -205,4 +205,154 @@ export class DashboardService {
 
     return { months: points, totals, marginPercent };
   }
+
+  /**
+   * Inventory analytics for the dashboard:
+   * - stockByKind: stock value/units/lot count grouped by material kind.
+   * - lowStock: 10 active materials with the least available quantity.
+   * - expiringByDay: count of lots expiring per day for the next 30 days
+   *   (data shape that's easy to feed into a heatmap or area chart).
+   * - expiringBuckets: aggregated counts/values for 7/14/30-day windows.
+   */
+  async getInventoryAnalytics(tenantId: string) {
+    type StockRow = { kind: string; value: string; lots: string; units: string };
+    type LowRow = {
+      id: string;
+      code: string;
+      name: string;
+      kind: string;
+      base_uom: string;
+      available: string;
+    };
+    type ExpiryRow = { date: string; count: string; value: string };
+    type BucketRow = {
+      within_7: number;
+      within_14: number;
+      within_30: number;
+      value_7: string;
+      value_14: string;
+      value_30: string;
+    };
+
+    const [stockByKindRows, lowStockRows, expiringByDayRows, bucketsRows] =
+      await Promise.all([
+        this.ds.query<StockRow[]>(
+          `
+          SELECT
+            m.kind                                              AS kind,
+            COALESCE(SUM(ml.quantity * ml.unit_cost), 0)::text  AS value,
+            COUNT(*)::text                                      AS lots,
+            COALESCE(SUM(ml.quantity), 0)::text                 AS units
+          FROM material_lots ml
+          JOIN materials m ON m.id = ml.material_id
+          WHERE ml.tenant_id = $1 AND ml.status = 'AVAILABLE'
+          GROUP BY m.kind
+          ORDER BY m.kind ASC;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<LowRow[]>(
+          `
+          SELECT
+            m.id,
+            m.code,
+            m.name,
+            m.kind,
+            m.base_uom,
+            COALESCE(
+              SUM(CASE WHEN ml.status = 'AVAILABLE' THEN ml.quantity ELSE 0 END),
+              0
+            )::text AS available
+          FROM materials m
+          LEFT JOIN material_lots ml
+            ON ml.material_id = m.id AND ml.tenant_id = m.tenant_id
+          WHERE m.tenant_id = $1 AND m.is_active = true
+          GROUP BY m.id
+          ORDER BY available ASC, m.name ASC
+          LIMIT 10;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<ExpiryRow[]>(
+          `
+          SELECT
+            TO_CHAR(expires_on, 'YYYY-MM-DD')                  AS date,
+            COUNT(*)::text                                     AS count,
+            COALESCE(SUM(quantity * unit_cost), 0)::text       AS value
+          FROM material_lots
+          WHERE tenant_id = $1
+            AND status IN ('AVAILABLE', 'QUARANTINE')
+            AND expires_on IS NOT NULL
+            AND expires_on >= CURRENT_DATE
+            AND expires_on <= CURRENT_DATE + INTERVAL '30 days'
+          GROUP BY expires_on
+          ORDER BY expires_on ASC;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<BucketRow[]>(
+          `
+          SELECT
+            COALESCE(SUM(CASE
+              WHEN expires_on <= CURRENT_DATE + INTERVAL '7 days' THEN 1
+              ELSE 0 END), 0)::int AS within_7,
+            COALESCE(SUM(CASE
+              WHEN expires_on >  CURRENT_DATE + INTERVAL '7 days'
+               AND expires_on <= CURRENT_DATE + INTERVAL '14 days' THEN 1
+              ELSE 0 END), 0)::int AS within_14,
+            COALESCE(SUM(CASE
+              WHEN expires_on >  CURRENT_DATE + INTERVAL '14 days'
+               AND expires_on <= CURRENT_DATE + INTERVAL '30 days' THEN 1
+              ELSE 0 END), 0)::int AS within_30,
+            COALESCE(SUM(CASE
+              WHEN expires_on <= CURRENT_DATE + INTERVAL '7 days'
+              THEN quantity * unit_cost ELSE 0 END), 0)::text AS value_7,
+            COALESCE(SUM(CASE
+              WHEN expires_on >  CURRENT_DATE + INTERVAL '7 days'
+               AND expires_on <= CURRENT_DATE + INTERVAL '14 days'
+              THEN quantity * unit_cost ELSE 0 END), 0)::text AS value_14,
+            COALESCE(SUM(CASE
+              WHEN expires_on >  CURRENT_DATE + INTERVAL '14 days'
+               AND expires_on <= CURRENT_DATE + INTERVAL '30 days'
+              THEN quantity * unit_cost ELSE 0 END), 0)::text AS value_30
+          FROM material_lots
+          WHERE tenant_id = $1
+            AND status IN ('AVAILABLE', 'QUARANTINE')
+            AND expires_on IS NOT NULL
+            AND expires_on >= CURRENT_DATE;
+          `,
+          [tenantId],
+        ),
+      ]);
+
+    return {
+      stockByKind: stockByKindRows.map((r) => ({
+        kind: r.kind,
+        value: Number(r.value),
+        lots: Number(r.lots),
+        units: Number(r.units),
+      })),
+      lowStock: lowStockRows.map((r) => ({
+        id: r.id,
+        code: r.code,
+        name: r.name,
+        kind: r.kind,
+        baseUom: r.base_uom,
+        available: Number(r.available),
+      })),
+      expiringByDay: expiringByDayRows.map((r) => ({
+        date: r.date,
+        count: Number(r.count),
+        value: Number(r.value),
+      })),
+      expiringBuckets: {
+        within7: bucketsRows[0]?.within_7 ?? 0,
+        within14: bucketsRows[0]?.within_14 ?? 0,
+        within30: bucketsRows[0]?.within_30 ?? 0,
+        value7: Number(bucketsRows[0]?.value_7 ?? 0),
+        value14: Number(bucketsRows[0]?.value_14 ?? 0),
+        value30: Number(bucketsRows[0]?.value_30 ?? 0),
+      },
+    };
+  }
 }

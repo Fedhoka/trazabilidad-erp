@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { Receipt, TrendingDown, TrendingUp, Wallet, Percent } from 'lucide-react';
-import { useDashboardStats } from '@/hooks/use-dashboard';
+import { useDashboardStats, useInventoryAnalytics } from '@/hooks/use-dashboard';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/page-header';
 import { MetricCard } from '@/components/dashboard/metric-card';
 import { RevenueAreaChart } from '@/components/dashboard/revenue-chart';
 import { ProductionBarChart } from '@/components/dashboard/production-chart';
+import { StockByKindChart } from '@/components/dashboard/stock-by-kind-chart';
+import { LowStockTable } from '@/components/dashboard/low-stock-table';
+import { ExpiringTimelineChart } from '@/components/dashboard/expiring-timeline';
 import {
   formatCurrency,
   formatNumber,
@@ -25,6 +28,7 @@ const WINDOWS = [
 export default function StatsPage() {
   const [window, setWindow] = useState<number>(12);
   const { data, isLoading } = useDashboardStats(window);
+  const { data: inventory, isLoading: inventoryLoading } = useInventoryAnalytics();
 
   // Month-over-month deltas computed against the second-to-last point.
   const last = data?.months[data.months.length - 1];
@@ -131,6 +135,33 @@ export default function StatsPage() {
       <section className="grid gap-4 lg:grid-cols-2">
         <RevenueAreaChart data={data?.months} loading={isLoading} />
         <ProductionBarChart data={data?.months} loading={isLoading} />
+      </section>
+
+      {/* ── Inventory analytics ──────────────────────────────────── */}
+      <section className="space-y-3 pt-2">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Inventario</h2>
+          <p className="text-sm text-muted-foreground">
+            Capital inmovilizado, alertas de bajo stock y vencimientos próximos
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <StockByKindChart
+            data={inventory?.stockByKind}
+            loading={inventoryLoading}
+          />
+          <LowStockTable
+            data={inventory?.lowStock}
+            loading={inventoryLoading}
+          />
+        </div>
+        <div className="grid gap-4">
+          <ExpiringTimelineChart
+            data={inventory?.expiringByDay}
+            buckets={inventory?.expiringBuckets}
+            loading={inventoryLoading}
+          />
+        </div>
       </section>
     </>
   );
