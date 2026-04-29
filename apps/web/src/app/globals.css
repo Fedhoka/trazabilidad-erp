@@ -218,3 +218,10 @@
   h1 { letter-spacing: -0.02em; }
   h2, h3 { letter-spacing: -0.015em; }
 }
+
+/* ── Keyframes ─────────────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
