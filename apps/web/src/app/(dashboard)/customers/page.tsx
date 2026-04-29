@@ -120,7 +120,10 @@ function CustomerForm({
             onValueChange={(v) => v && setValue('condicionIva', v as CondicionIva)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar…" />
+              <SelectValue
+                placeholder="Seleccionar…"
+                getLabel={(v) => CONDICION_IVA_LABELS[v as CondicionIva]}
+              />
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(CONDICION_IVA_LABELS) as CondicionIva[]).map((k) => (

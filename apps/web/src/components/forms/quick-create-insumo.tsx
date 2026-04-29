@@ -165,7 +165,9 @@ export function QuickCreateInsumo({
                 onValueChange={(v) => v && setValue('kind', v as MaterialKind)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue
+                    getLabel={(v) => KIND_LABEL[v as MaterialKind]}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(KIND_LABEL) as MaterialKind[]).map((k) => (

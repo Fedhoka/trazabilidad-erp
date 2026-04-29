@@ -135,7 +135,12 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
         <Label>Proveedor *</Label>
         <Select value={supplierId} onValueChange={(v) => v && setValue('supplierId', v)}>
           <SelectTrigger>
-            <SelectValue placeholder="Seleccionar…" />
+            <SelectValue
+              placeholder="Seleccionar…"
+              getLabel={(v) =>
+                suppliersResult?.data.find((s) => s.id === v)?.name
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {suppliersResult?.data.filter((s) => s.isActive).map((s) => (
@@ -218,7 +223,13 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
                       onValueChange={(v) => v && setValue(`lines.${i}.materialId`, v)}
                     >
                       <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Insumo…" />
+                        <SelectValue
+                          placeholder="Insumo…"
+                          getLabel={(v) => {
+                            const m = materialsResult?.data.find((m) => m.id === v);
+                            return m ? `${m.code} — ${m.name}` : null;
+                          }}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {materialsResult?.data.map((m) => (

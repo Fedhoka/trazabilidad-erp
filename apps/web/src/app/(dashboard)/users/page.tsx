@@ -68,7 +68,9 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
       <div className="space-y-1.5">
         <Label>Rol *</Label>
         <Select defaultValue="OPERATOR" onValueChange={(v) => v && setValue('role', v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue getLabel={(v) => ROLE_LABELS[v as UserRole] ?? String(v)} />
+          </SelectTrigger>
           <SelectContent>
             {ROLES.map(([value, label]) => (
               <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -105,7 +107,7 @@ function RoleCell({ user, isOwner }: { user: AppUser; isOwner: boolean }) {
       }}
     >
       <SelectTrigger className="h-8 w-44 text-xs">
-        <SelectValue />
+        <SelectValue getLabel={(v) => ROLE_LABELS[v as UserRole] ?? String(v)} />
       </SelectTrigger>
       <SelectContent>
         {ROLES.map(([value, label]) => (

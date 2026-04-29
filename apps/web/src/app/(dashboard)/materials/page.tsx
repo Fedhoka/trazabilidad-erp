@@ -125,7 +125,10 @@ function MaterialForm({
             onValueChange={(v) => setValue('kind', v as MaterialKind)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar…" />
+              <SelectValue
+                placeholder="Seleccionar…"
+                getLabel={(v) => KIND_LABELS[v as MaterialKind]}
+              />
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(KIND_LABELS) as MaterialKind[]).map((k) => (

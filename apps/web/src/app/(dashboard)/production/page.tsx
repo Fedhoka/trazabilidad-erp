@@ -139,7 +139,15 @@ function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
             value={outputMaterialId}
             onValueChange={(v) => v && setValue('outputMaterialId', v)}
           >
-            <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue
+                placeholder="Seleccionar…"
+                getLabel={(v) => {
+                  const m = materialsResult?.data.find((m) => m.id === v);
+                  return m ? `${m.code} — ${m.name}` : null;
+                }}
+              />
+            </SelectTrigger>
             <SelectContent>
               {materialsResult?.data.filter((m) => m.kind === 'FINISHED' || m.kind === 'WIP').map((m) => (
                 <SelectItem key={m.id} value={m.id}>{m.code} — {m.name}</SelectItem>
@@ -197,7 +205,13 @@ function CreateRecipeDialog({ onClose }: { onClose: () => void }) {
                       onValueChange={(v) => v && setValue(`components.${i}.materialId`, v)}
                     >
                       <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Material…" />
+                        <SelectValue
+                          placeholder="Insumo…"
+                          getLabel={(v) => {
+                            const m = materialsResult?.data.find((m) => m.id === v);
+                            return m ? `${m.code} — ${m.name}` : null;
+                          }}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {materialsResult?.data.map((m) => (
@@ -268,7 +282,12 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
       <div className="space-y-1.5">
         <Label>Receta *</Label>
         <Select value={recipeId} onValueChange={(v) => v && setRecipeId(v)}>
-          <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue
+              placeholder="Seleccionar…"
+              getLabel={(v) => recipesResult?.data.find((r) => r.id === v)?.name}
+            />
+          </SelectTrigger>
           <SelectContent>
             {recipesResult?.data.filter((r) => r.status === 'ACTIVE').map((r) => (
               <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>

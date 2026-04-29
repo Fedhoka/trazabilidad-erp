@@ -18,13 +18,37 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+type SelectValueProps = Omit<SelectPrimitive.Value.Props, "children"> & {
+  /**
+   * Maps the currently-selected value to a display label. Required when the
+   * Select.Root is not given an `items` prop, otherwise the trigger would
+   * fall back to showing the raw value (e.g. a UUID).
+   */
+  getLabel?: (value: unknown) => React.ReactNode
+  children?: SelectPrimitive.Value.Props["children"]
+}
+
+function SelectValue({
+  className,
+  getLabel,
+  children,
+  ...props
+}: SelectValueProps) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
       {...props}
-    />
+    >
+      {children ??
+        (getLabel
+          ? (value) => {
+              if (value === null || value === undefined || value === "") return null
+              const label = getLabel(value)
+              return label ?? null
+            }
+          : undefined)}
+    </SelectPrimitive.Value>
   )
 }
 

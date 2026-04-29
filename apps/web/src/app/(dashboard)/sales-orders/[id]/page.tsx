@@ -99,7 +99,13 @@ function IssueInvoiceDialog({
         <Label>Punto de venta *</Label>
         <Select value={posNumber} onValueChange={(v) => v && setPosNumber(v)}>
           <SelectTrigger>
-            <SelectValue placeholder="Seleccionar…" />
+            <SelectValue
+              placeholder="Seleccionar…"
+              getLabel={(v) => {
+                const p = posList?.find((p) => String(p.number) === v);
+                return p ? `${String(p.number).padStart(4, '0')} — ${p.name}` : null;
+              }}
+            />
           </SelectTrigger>
           <SelectContent>
             {posList?.filter((p) => p.isActive).map((p) => (

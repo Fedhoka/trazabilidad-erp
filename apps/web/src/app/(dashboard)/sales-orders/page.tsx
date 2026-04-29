@@ -115,7 +115,12 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
         <Label>Cliente *</Label>
         <Select value={customerId} onValueChange={(v) => v && setValue('customerId', v)}>
           <SelectTrigger>
-            <SelectValue placeholder="Seleccionar…" />
+            <SelectValue
+              placeholder="Seleccionar…"
+              getLabel={(v) =>
+                customersResult?.data.find((c) => c.id === v)?.name
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {customersResult?.data.filter((c) => c.isActive).map((c) => (
@@ -153,7 +158,7 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Material</TableHead>
+                <TableHead>Producto</TableHead>
                 <TableHead className="w-28">Cantidad</TableHead>
                 <TableHead className="w-28">Precio unit.</TableHead>
                 <TableHead className="w-10" />
@@ -168,7 +173,13 @@ function CreateSODialog({ onClose }: { onClose: () => void }) {
                       onValueChange={(v) => v && setValue(`lines.${i}.materialId`, v)}
                     >
                       <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Material…" />
+                        <SelectValue
+                          placeholder="Producto…"
+                          getLabel={(v) => {
+                            const m = materialsResult?.data.find((m) => m.id === v);
+                            return m ? `${m.code} — ${m.name}` : null;
+                          }}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {materialsResult?.data.map((m) => (

@@ -305,7 +305,9 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
                             onValueChange={(v) => v && updateLine(i, 'qcStatus', v)}
                           >
                             <SelectTrigger className="h-8">
-                              <SelectValue />
+                              <SelectValue
+                                getLabel={(v) => QC_LABELS[v as QcStatus]}
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               {(Object.keys(QC_LABELS) as QcStatus[]).map((k) => (
