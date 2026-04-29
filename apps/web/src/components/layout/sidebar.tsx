@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const navItems: { href: string; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -72,12 +73,13 @@ export function Sidebar() {
           ))}
       </nav>
       <Separator />
-      <div className="p-3">
+      <div className="p-3 space-y-1">
         <p className="truncate px-1 text-xs text-muted-foreground">{user?.email}</p>
+        <ThemeToggle variant="full" />
         <Button
           variant="ghost"
           size="sm"
-          className="mt-1 w-full justify-start gap-2 text-muted-foreground"
+          className="w-full justify-start gap-2 text-muted-foreground"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
