@@ -14,6 +14,7 @@ import {
 } from '@/hooks/use-suppliers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/layout/page-header';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -149,13 +150,16 @@ export default function SuppliersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Proveedores</h1>
-        <Button onClick={openCreate} size="sm" className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Nuevo proveedor
-        </Button>
-      </div>
+      <PageHeader
+        title="Proveedores"
+        description="Catálogo de proveedores y sus datos de contacto."
+        actions={
+          <Button onClick={openCreate} className="gap-2">
+            <PlusCircle className="h-4 w-4" />
+            Nuevo proveedor
+          </Button>
+        }
+      />
 
       <div className="rounded-md border">
         <Table>

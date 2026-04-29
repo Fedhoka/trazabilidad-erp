@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Download } from 'lucide-react';
+import { PageHeader } from '@/components/layout/page-header';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -111,14 +112,20 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Inventario</h1>
-        <Button variant="outline" size="sm" className="gap-2"
-          onClick={() => downloadReport('/reports/stock.csv', 'stock.csv')}>
-          <Download className="h-4 w-4" />
-          Exportar CSV
-        </Button>
-      </div>
+      <PageHeader
+        title="Inventario"
+        description="Lotes de materia prima y productos terminados disponibles."
+        actions={
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => downloadReport('/reports/stock.csv', 'stock.csv')}
+          >
+            <Download className="h-4 w-4" />
+            Exportar CSV
+          </Button>
+        }
+      />
 
       {/* Filter tabs */}
       <div className="flex gap-1 border-b pb-0">

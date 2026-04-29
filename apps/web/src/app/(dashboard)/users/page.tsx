@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -126,15 +127,18 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
-        {isOwner && (
-          <Button onClick={() => setInviteOpen(true)} size="sm" className="gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Invitar usuario
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Usuarios"
+        description="Miembros del equipo, roles asignados y acceso al sistema."
+        actions={
+          isOwner ? (
+            <Button onClick={() => setInviteOpen(true)} className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Invitar usuario
+            </Button>
+          ) : null
+        }
+      />
 
       <div className="rounded-md border">
         <Table>

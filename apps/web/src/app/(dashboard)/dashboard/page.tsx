@@ -5,6 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import { useDashboardKpis } from '@/hooks/use-dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/layout/page-header';
 import {
   Truck, Package, Layers, ShoppingCart, Factory, Users, FileText, Receipt, Settings,
   BoxIcon, TrendingUp, ClipboardList, RefreshCw, AlertTriangle,
@@ -61,12 +62,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Bienvenido{user?.email ? `, ${user.email}` : ''}.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description={`Bienvenido${user?.email ? `, ${user.email}` : ''}.`}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Lotes disponibles" value={kpis?.availableLots} icon={BoxIcon} />

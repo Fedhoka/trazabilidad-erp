@@ -21,6 +21,7 @@ import { useMaterials } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -310,23 +311,30 @@ export default function ProductionPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Producción</h1>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => router.push('/production/traceability')}
-        >
-          <Search className="h-4 w-4" />
-          Trazabilidad
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2"
-          onClick={() => downloadReport('/reports/production-costs.csv', 'costos-produccion.csv')}>
-          <Download className="h-4 w-4" />
-          Exportar CSV
-        </Button>
-      </div>
+      <PageHeader
+        title="Producción"
+        description="Recetas activas y órdenes de producción en curso."
+        actions={
+          <>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => router.push('/production/traceability')}
+            >
+              <Search className="h-4 w-4" />
+              Trazabilidad
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => downloadReport('/reports/production-costs.csv', 'costos-produccion.csv')}
+            >
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </Button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 border-b">

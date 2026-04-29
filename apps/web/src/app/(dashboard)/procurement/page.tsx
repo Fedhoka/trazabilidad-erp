@@ -14,6 +14,7 @@ import { useMaterials } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -242,20 +243,26 @@ export default function ProcurementPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Órdenes de compra</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2"
-            onClick={() => downloadReport('/reports/purchases.csv', 'compras.csv')}>
-            <Download className="h-4 w-4" />
-            Exportar CSV
-          </Button>
-          <Button onClick={() => setOpen(true)} size="sm" className="gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Nueva OC
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Órdenes de compra"
+        description="Solicitudes a proveedores y su estado de recepción."
+        actions={
+          <>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => downloadReport('/reports/purchases.csv', 'compras.csv')}
+            >
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </Button>
+            <Button onClick={() => setOpen(true)} className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Nueva OC
+            </Button>
+          </>
+        }
+      />
 
       <div className="rounded-md border">
         <Table>

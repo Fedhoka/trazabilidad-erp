@@ -12,6 +12,7 @@ import { useCustomers } from '@/hooks/use-customers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -108,7 +109,10 @@ export default function FiscalPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Fiscal</h1>
+      <PageHeader
+        title="Fiscal"
+        description="Puntos de venta y facturas emitidas a través de AFIP."
+      />
 
       {/* Points of Sale */}
       <section className="space-y-3">

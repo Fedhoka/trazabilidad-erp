@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Shield } from 'lucide-react';
 import { useAuditLogs, type AuditAction } from '@/hooks/use-audit';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { PageHeader } from '@/components/layout/page-header';
 import {
   Table,
   TableBody,
@@ -35,13 +35,10 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Shield className="h-6 w-6 text-muted-foreground" />
-        <h1 className="text-2xl font-semibold tracking-tight">Auditoría</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Registro de todas las acciones de escritura realizadas en el sistema.
-      </p>
+      <PageHeader
+        title="Auditoría"
+        description="Registro de todas las acciones de escritura realizadas en el sistema."
+      />
 
       <div className="rounded-md border">
         <Table>

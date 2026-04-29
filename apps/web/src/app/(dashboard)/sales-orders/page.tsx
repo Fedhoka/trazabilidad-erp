@@ -13,6 +13,7 @@ import { useMaterials } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -226,13 +227,16 @@ export default function SalesOrdersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Pedidos de venta</h1>
-        <Button onClick={() => setOpen(true)} size="sm" className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Nuevo pedido
-        </Button>
-      </div>
+      <PageHeader
+        title="Pedidos de venta"
+        description="Pedidos confirmados, despachados y facturados."
+        actions={
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <PlusCircle className="h-4 w-4" />
+            Nuevo pedido
+          </Button>
+        }
+      />
 
       <div className="rounded-md border">
         <Table>

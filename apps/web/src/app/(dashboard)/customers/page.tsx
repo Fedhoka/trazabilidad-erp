@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -175,13 +176,16 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-        <Button onClick={() => { setEditing(null); setOpen(true); }} size="sm" className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Nuevo cliente
-        </Button>
-      </div>
+      <PageHeader
+        title="Clientes"
+        description="Cartera de clientes y su condición frente al IVA."
+        actions={
+          <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+            <PlusCircle className="h-4 w-4" />
+            Nuevo cliente
+          </Button>
+        }
+      />
 
       <div className="rounded-md border">
         <Table>
