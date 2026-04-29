@@ -1,7 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import { StatsQueryDto } from './dto/stats-query.dto';
 
 @Controller('dashboard')
 export class DashboardController {
@@ -10,5 +11,14 @@ export class DashboardController {
   @Get('kpis')
   getKpis(@CurrentUser() user: User) {
     return this.service.getKpis(user.tenantId);
+  }
+
+  /**
+   * Time-series stats for charts: revenue, costs, units produced, margin
+   * grouped by month. Returns N months ending in the current month.
+   */
+  @Get('stats')
+  getStats(@CurrentUser() user: User, @Query() query: StatsQueryDto) {
+    return this.service.getStats(user.tenantId, query.months ?? 12);
   }
 }
