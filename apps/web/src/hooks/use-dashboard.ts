@@ -35,6 +35,38 @@ export function useDashboardKpis() {
   });
 }
 
+// ── Time-series stats for charts ───────────────────────────────────────────
+export interface MonthlyStatPoint {
+  month: string; // YYYY-MM
+  revenue: number;
+  invoiceCount: number;
+  costs: number;
+  unitsProduced: number;
+  purchases: number;
+  margin: number;
+}
+
+export interface DashboardStats {
+  months: MonthlyStatPoint[];
+  totals: {
+    revenue: number;
+    costs: number;
+    margin: number;
+    invoiceCount: number;
+    unitsProduced: number;
+    purchases: number;
+  };
+  marginPercent: number;
+}
+
+export function useDashboardStats(months = 12) {
+  return useQuery({
+    queryKey: ['dashboard', 'stats', months],
+    queryFn: () =>
+      apiFetch<DashboardStats>(`/dashboard/stats?months=${months}`),
+  });
+}
+
 export function useInventoryLots(includeExpired = false, page = 1) {
   return useQuery({
     queryKey: ['inventory', 'lots', includeExpired, page],

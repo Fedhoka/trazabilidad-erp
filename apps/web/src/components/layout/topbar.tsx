@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 /** Static segment label map. Anything not here is title-cased. */
 const ROUTE_NAMES: Record<string, string> = {
   dashboard: 'Dashboard',
+  stats: 'Estadísticas',
   suppliers: 'Proveedores',
   materials: 'Materiales',
   inventory: 'Inventario',

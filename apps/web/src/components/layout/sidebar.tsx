@@ -19,6 +19,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Sprout,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -43,7 +44,10 @@ type NavSection = {
 const navSections: NavSection[] = [
   {
     label: 'Principal',
-    items: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/stats', label: 'Estadísticas', icon: BarChart3 },
+    ],
   },
   {
     label: 'Inventario',
