@@ -6,15 +6,16 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { PlusCircle, Trash2, Eye, Download } from 'lucide-react';
+import { PlusCircle, Trash2, Eye, Download, Sparkles } from 'lucide-react';
 import { downloadReport } from '@/lib/api';
 import { usePurchaseOrders, useCreatePurchaseOrder } from '@/hooks/use-procurement';
 import { useSuppliers } from '@/hooks/use-suppliers';
-import { useMaterials } from '@/hooks/use-materials';
+import { useMaterials, type Material } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
+import { QuickCreateInsumo } from '@/components/forms/quick-create-insumo';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -59,7 +60,7 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'dest
 };
 
 const lineSchema = z.object({
-  materialId: z.string().uuid('Seleccioná un material'),
+  materialId: z.string().uuid('Seleccioná un insumo'),
   quantity: z.string().min(1, 'Requerido'),
   unitPrice: z.string().min(1, 'Requerido'),
 });
@@ -77,6 +78,8 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
   const { data: materialsResult } = useMaterials();
   const create = useCreatePurchaseOrder();
 
+  const [insumoOpen, setInsumoOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -91,6 +94,22 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
 
   const { fields, append, remove } = useFieldArray({ control, name: 'lines' });
   const supplierId = watch('supplierId');
+
+  /**
+   * After creating an insumo, drop it into the first empty line if there is
+   * one, otherwise append a new line with it pre-selected.
+   */
+  function handleInsumoCreated(material: Material) {
+    const currentLines = watch('lines');
+    const emptyIndex = currentLines.findIndex((l) => !l.materialId);
+    if (emptyIndex >= 0) {
+      setValue(`lines.${emptyIndex}.materialId`, material.id, {
+        shouldValidate: true,
+      });
+    } else {
+      append({ materialId: material.id, quantity: '', unitPrice: '' });
+    }
+  }
 
   async function onSubmit(values: FormValues) {
     try {
@@ -137,27 +156,54 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Label>Líneas *</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="gap-1"
-            onClick={() => append({ materialId: '', quantity: '', unitPrice: '' })}
-          >
-            <PlusCircle className="h-3.5 w-3.5" />
-            Agregar
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => setInsumoOpen(true)}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Nuevo insumo
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => append({ materialId: '', quantity: '', unitPrice: '' })}
+            >
+              <PlusCircle className="h-3.5 w-3.5" />
+              Agregar línea
+            </Button>
+          </div>
         </div>
         {errors.lines?.root && (
           <p className="text-xs text-destructive">{errors.lines.root.message}</p>
         )}
+
+        {materialsResult && materialsResult.data.length === 0 && (
+          <div className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+            Todavía no hay insumos cargados.{' '}
+            <button
+              type="button"
+              onClick={() => setInsumoOpen(true)}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Creá el primero
+            </button>{' '}
+            para poder armar la orden.
+          </div>
+        )}
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Material</TableHead>
+                <TableHead>Insumo</TableHead>
                 <TableHead className="w-28">Cantidad</TableHead>
                 <TableHead className="w-28">Precio unit.</TableHead>
                 <TableHead className="w-10" />
@@ -172,7 +218,7 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
                       onValueChange={(v) => v && setValue(`lines.${i}.materialId`, v)}
                     >
                       <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Material…" />
+                        <SelectValue placeholder="Insumo…" />
                       </SelectTrigger>
                       <SelectContent>
                         {materialsResult?.data.map((m) => (
@@ -228,6 +274,13 @@ function CreatePODialog({ onClose }: { onClose: () => void }) {
           {isSubmitting ? 'Creando…' : 'Crear OC'}
         </Button>
       </DialogFooter>
+
+      {/* Nested dialog: quick-create an insumo without leaving the OC form */}
+      <QuickCreateInsumo
+        open={insumoOpen}
+        onOpenChange={setInsumoOpen}
+        onCreated={handleInsumoCreated}
+      />
     </form>
   );
 }

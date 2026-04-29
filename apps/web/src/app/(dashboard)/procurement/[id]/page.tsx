@@ -170,7 +170,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Material</TableHead>
+                <TableHead>Insumo</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-right">Precio unit.</TableHead>
                 <TableHead className="text-right">Recibido</TableHead>
@@ -250,7 +250,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Material</TableHead>
+                    <TableHead>Insumo</TableHead>
                     <TableHead className="w-24">Cantidad</TableHead>
                     <TableHead className="w-24">Costo unit.</TableHead>
                     <TableHead className="w-32">Lote</TableHead>
