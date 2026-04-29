@@ -355,4 +355,145 @@ export class DashboardService {
       },
     };
   }
+
+  /**
+   * Sales analytics for the dashboard:
+   * - topCustomers: top 5 by net revenue in the last 12 months.
+   * - topProducts: top 5 sold products (units + revenue) in the last 12
+   *   months, joined through sales_orders since invoice_lines is free-text.
+   * - byCondicionIva: customer count + invoice count + revenue grouped by
+   *   AFIP condition.
+   * - averageTicket: total / invoice_count for the same window.
+   */
+  async getSalesAnalytics(tenantId: string) {
+    type CustomerRow = {
+      id: string;
+      name: string;
+      condicion_iva: string;
+      revenue: string;
+      invoice_count: string;
+    };
+    type ProductRow = {
+      id: string;
+      code: string;
+      name: string;
+      units: string;
+      revenue: string;
+    };
+    type CondicionRow = {
+      condicion_iva: string;
+      customers: string;
+      revenue: string;
+      invoice_count: string;
+    };
+    type TicketRow = {
+      total_revenue: string;
+      invoice_count: string;
+      avg_ticket: string;
+    };
+
+    const [topCustomersRows, topProductsRows, condicionRows, ticketRows] =
+      await Promise.all([
+        this.ds.query<CustomerRow[]>(
+          `
+          SELECT
+            c.id,
+            c.name,
+            c.condicion_iva,
+            COALESCE(SUM(i.net_amount), 0)::text  AS revenue,
+            COUNT(DISTINCT i.id)::text            AS invoice_count
+          FROM invoices i
+          JOIN customers c ON c.id = i.customer_id
+          WHERE i.tenant_id = $1
+            AND i.status = 'AUTHORIZED'
+            AND COALESCE(i.issued_at, i.created_at) >= NOW() - INTERVAL '12 months'
+          GROUP BY c.id
+          ORDER BY revenue DESC
+          LIMIT 5;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<ProductRow[]>(
+          `
+          SELECT
+            m.id,
+            m.code,
+            m.name,
+            COALESCE(SUM(sol.quantity), 0)::text                AS units,
+            COALESCE(SUM(sol.quantity * sol.unit_price), 0)::text AS revenue
+          FROM invoices i
+          JOIN sales_orders so ON so.id = i.sales_order_id
+          JOIN sales_order_lines sol ON sol.sales_order_id = so.id
+          JOIN materials m ON m.id = sol.material_id
+          WHERE i.tenant_id = $1
+            AND i.status = 'AUTHORIZED'
+            AND COALESCE(i.issued_at, i.created_at) >= NOW() - INTERVAL '12 months'
+          GROUP BY m.id
+          ORDER BY revenue DESC
+          LIMIT 5;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<CondicionRow[]>(
+          `
+          SELECT
+            c.condicion_iva                            AS condicion_iva,
+            COUNT(DISTINCT c.id)::text                 AS customers,
+            COALESCE(SUM(i.net_amount), 0)::text       AS revenue,
+            COUNT(i.id)::text                          AS invoice_count
+          FROM customers c
+          LEFT JOIN invoices i
+            ON i.customer_id = c.id
+           AND i.tenant_id = c.tenant_id
+           AND i.status = 'AUTHORIZED'
+           AND COALESCE(i.issued_at, i.created_at) >= NOW() - INTERVAL '12 months'
+          WHERE c.tenant_id = $1
+          GROUP BY c.condicion_iva
+          ORDER BY revenue DESC;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<TicketRow[]>(
+          `
+          SELECT
+            COALESCE(SUM(net_amount), 0)::text  AS total_revenue,
+            COUNT(*)::text                      AS invoice_count,
+            COALESCE(AVG(net_amount), 0)::text  AS avg_ticket
+          FROM invoices
+          WHERE tenant_id = $1
+            AND status = 'AUTHORIZED'
+            AND COALESCE(issued_at, created_at) >= NOW() - INTERVAL '12 months';
+          `,
+          [tenantId],
+        ),
+      ]);
+
+    return {
+      topCustomers: topCustomersRows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        condicionIva: r.condicion_iva,
+        revenue: Number(r.revenue),
+        invoiceCount: Number(r.invoice_count),
+      })),
+      topProducts: topProductsRows.map((r) => ({
+        id: r.id,
+        code: r.code,
+        name: r.name,
+        units: Number(r.units),
+        revenue: Number(r.revenue),
+      })),
+      byCondicionIva: condicionRows.map((r) => ({
+        condicionIva: r.condicion_iva,
+        customers: Number(r.customers),
+        revenue: Number(r.revenue),
+        invoiceCount: Number(r.invoice_count),
+      })),
+      ticket: {
+        totalRevenue: Number(ticketRows[0]?.total_revenue ?? 0),
+        invoiceCount: Number(ticketRows[0]?.invoice_count ?? 0),
+        average: Number(ticketRows[0]?.avg_ticket ?? 0),
+      },
+    };
+  }
 }

@@ -114,6 +114,50 @@ export function useInventoryAnalytics() {
   });
 }
 
+// ── Sales analytics ──────────────────────────────────────────────────────
+export type CondicionIva = 'RI' | 'CF' | 'MONO' | 'EXENTO';
+
+export interface TopCustomerEntry {
+  id: string;
+  name: string;
+  condicionIva: CondicionIva;
+  revenue: number;
+  invoiceCount: number;
+}
+
+export interface TopProductEntry {
+  id: string;
+  code: string;
+  name: string;
+  units: number;
+  revenue: number;
+}
+
+export interface CondicionIvaEntry {
+  condicionIva: CondicionIva;
+  customers: number;
+  revenue: number;
+  invoiceCount: number;
+}
+
+export interface SalesAnalytics {
+  topCustomers: TopCustomerEntry[];
+  topProducts: TopProductEntry[];
+  byCondicionIva: CondicionIvaEntry[];
+  ticket: {
+    totalRevenue: number;
+    invoiceCount: number;
+    average: number;
+  };
+}
+
+export function useSalesAnalytics() {
+  return useQuery({
+    queryKey: ['dashboard', 'sales-analytics'],
+    queryFn: () => apiFetch<SalesAnalytics>('/dashboard/sales-analytics'),
+  });
+}
+
 export function useInventoryLots(includeExpired = false, page = 1) {
   return useQuery({
     queryKey: ['inventory', 'lots', includeExpired, page],

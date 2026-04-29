@@ -1,8 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Receipt, TrendingDown, TrendingUp, Wallet, Percent } from 'lucide-react';
-import { useDashboardStats, useInventoryAnalytics } from '@/hooks/use-dashboard';
+import {
+  Receipt,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  Percent,
+  Users,
+  ShoppingBag,
+  CreditCard,
+} from 'lucide-react';
+import {
+  useDashboardStats,
+  useInventoryAnalytics,
+  useSalesAnalytics,
+} from '@/hooks/use-dashboard';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/page-header';
 import { MetricCard } from '@/components/dashboard/metric-card';
@@ -11,6 +24,9 @@ import { ProductionBarChart } from '@/components/dashboard/production-chart';
 import { StockByKindChart } from '@/components/dashboard/stock-by-kind-chart';
 import { LowStockTable } from '@/components/dashboard/low-stock-table';
 import { ExpiringTimelineChart } from '@/components/dashboard/expiring-timeline';
+import { TopList, buildTopListItems } from '@/components/dashboard/top-list';
+import { CondicionIvaBreakdown } from '@/components/dashboard/condicion-iva-breakdown';
+import { formatNumber as fmtNum } from '@/lib/format';
 import {
   formatCurrency,
   formatNumber,
@@ -29,6 +45,7 @@ export default function StatsPage() {
   const [window, setWindow] = useState<number>(12);
   const { data, isLoading } = useDashboardStats(window);
   const { data: inventory, isLoading: inventoryLoading } = useInventoryAnalytics();
+  const { data: sales, isLoading: salesLoading } = useSalesAnalytics();
 
   // Month-over-month deltas computed against the second-to-last point.
   const last = data?.months[data.months.length - 1];
@@ -160,6 +177,75 @@ export default function StatsPage() {
             data={inventory?.expiringByDay}
             buckets={inventory?.expiringBuckets}
             loading={inventoryLoading}
+          />
+        </div>
+      </section>
+
+      {/* ── Commercial analytics ─────────────────────────────────── */}
+      <section className="space-y-3 pt-2">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Comercial</h2>
+          <p className="text-sm text-muted-foreground">
+            Ranking de clientes y productos, ticket promedio y mix por condición
+            IVA — últimos 12 meses
+          </p>
+        </div>
+
+        {/* Ticket strip */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MetricCard
+            label="Ticket promedio"
+            value={
+              sales
+                ? formatCurrency(sales.ticket.average)
+                : formatCurrency(0)
+            }
+            icon={CreditCard}
+            loading={salesLoading}
+          />
+          <MetricCard
+            label="Facturas emitidas"
+            value={fmtNum(sales?.ticket.invoiceCount ?? 0)}
+            icon={Receipt}
+            loading={salesLoading}
+          />
+          <MetricCard
+            label="Total facturado"
+            value={formatCurrency(sales?.ticket.totalRevenue ?? 0)}
+            icon={Wallet}
+            loading={salesLoading}
+          />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TopList
+            title="Top clientes"
+            description="Clientes con mayor facturación neta"
+            items={buildTopListItems(
+              sales?.topCustomers,
+              (c) => c.name,
+              (c) => `${c.invoiceCount} facturas`,
+              (c) => c.id,
+            )}
+            loading={salesLoading}
+          />
+          <TopList
+            title="Top productos"
+            description="Productos más vendidos por facturación"
+            items={buildTopListItems(
+              sales?.topProducts,
+              (p) => p.name,
+              (p) => `${p.code} · ${fmtNum(p.units, { maximumFractionDigits: 2 })} u`,
+              (p) => p.id,
+            )}
+            loading={salesLoading}
+          />
+        </div>
+
+        <div className="grid gap-4">
+          <CondicionIvaBreakdown
+            data={sales?.byCondicionIva}
+            loading={salesLoading}
           />
         </div>
       </section>

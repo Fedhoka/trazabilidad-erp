@@ -30,4 +30,13 @@ export class DashboardController {
   getInventoryAnalytics(@CurrentUser() user: User) {
     return this.service.getInventoryAnalytics(user.tenantId);
   }
+
+  /**
+   * Sales analytics: top customers/products, condicion IVA breakdown, and
+   * average ticket — all over a rolling 12-month window.
+   */
+  @Get('sales-analytics')
+  getSalesAnalytics(@CurrentUser() user: User) {
+    return this.service.getSalesAnalytics(user.tenantId);
+  }
 }

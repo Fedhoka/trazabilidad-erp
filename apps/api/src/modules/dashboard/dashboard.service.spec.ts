@@ -29,6 +29,20 @@ function makeInventoryService(
   return { service: new DashboardService(ds), query: ds.query as jest.Mock };
 }
 
+/** Helper for getSalesAnalytics which makes 4 parallel queries. */
+function makeSalesService(
+  topCustomers: unknown[],
+  topProducts: unknown[],
+  byCondicion: unknown[],
+  ticket: unknown[],
+) {
+  const queue = [topCustomers, topProducts, byCondicion, ticket];
+  const ds = {
+    query: jest.fn().mockImplementation(() => Promise.resolve(queue.shift() ?? [])),
+  } as unknown as DataSource;
+  return { service: new DashboardService(ds), query: ds.query as jest.Mock };
+}
+
 describe('DashboardService.getStats', () => {
   const TENANT = '00000000-0000-0000-0000-000000000001';
 
@@ -219,6 +233,77 @@ describe('DashboardService.getStats', () => {
     });
     expect(a.expiringBuckets.within7).toBe(2);
     expect(a.expiringBuckets.value14).toBe(1200);
+  });
+
+  it('shapes sales analytics rows correctly', async () => {
+    const { service } = makeSalesService(
+      [
+        {
+          id: 'c1',
+          name: 'Cliente A',
+          condicion_iva: 'RI',
+          revenue: '12000.50',
+          invoice_count: '8',
+        },
+        {
+          id: 'c2',
+          name: 'Cliente B',
+          condicion_iva: 'CF',
+          revenue: '5400.00',
+          invoice_count: '3',
+        },
+      ],
+      [
+        { id: 'm1', code: 'EMP-001', name: 'Empanada carne', units: '120', revenue: '14400.00' },
+        { id: 'm2', code: 'EMP-002', name: 'Empanada pollo', units: '80', revenue: '9600.00' },
+      ],
+      [
+        { condicion_iva: 'RI', customers: '5', revenue: '12000.50', invoice_count: '8' },
+        { condicion_iva: 'CF', customers: '20', revenue: '5400.00', invoice_count: '3' },
+        { condicion_iva: 'MONO', customers: '2', revenue: '0', invoice_count: '0' },
+      ],
+      [
+        { total_revenue: '17400.50', invoice_count: '11', avg_ticket: '1581.86' },
+      ],
+    );
+
+    const a = await service.getSalesAnalytics('tenant-1');
+
+    expect(a.topCustomers).toHaveLength(2);
+    expect(a.topCustomers[0]).toEqual({
+      id: 'c1',
+      name: 'Cliente A',
+      condicionIva: 'RI',
+      revenue: 12000.5,
+      invoiceCount: 8,
+    });
+    expect(a.topProducts[0]!.code).toBe('EMP-001');
+    expect(a.topProducts[0]!.units).toBe(120);
+    expect(a.byCondicionIva).toHaveLength(3);
+    expect(a.byCondicionIva[2]).toEqual({
+      condicionIva: 'MONO',
+      customers: 2,
+      revenue: 0,
+      invoiceCount: 0,
+    });
+    expect(a.ticket).toEqual({
+      totalRevenue: 17400.5,
+      invoiceCount: 11,
+      average: 1581.86,
+    });
+  });
+
+  it('returns zero ticket when there are no authorized invoices', async () => {
+    const { service } = makeSalesService([], [], [], []);
+    const a = await service.getSalesAnalytics('tenant-1');
+    expect(a.ticket).toEqual({
+      totalRevenue: 0,
+      invoiceCount: 0,
+      average: 0,
+    });
+    expect(a.topCustomers).toEqual([]);
+    expect(a.topProducts).toEqual([]);
+    expect(a.byCondicionIva).toEqual([]);
   });
 
   it('returns an empty months array and zero totals for a tenant with no data', async () => {
