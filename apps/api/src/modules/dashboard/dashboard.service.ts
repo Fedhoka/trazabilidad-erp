@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { FixedCostsService } from '../fixed-costs/fixed-costs.service';
 
 export interface MonthlyStatPoint {
   /** ISO YYYY-MM, e.g. "2026-04". */
@@ -34,7 +35,10 @@ export interface DashboardStats {
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly ds: DataSource) {}
+  constructor(
+    private readonly ds: DataSource,
+    private readonly fixedCosts: FixedCostsService,
+  ) {}
 
   async getKpis(tenantId: string) {
     const rows = await this.ds.query<Record<string, string>[]>(
@@ -494,6 +498,75 @@ export class DashboardService {
         invoiceCount: Number(ticketRows[0]?.invoice_count ?? 0),
         average: Number(ticketRows[0]?.avg_ticket ?? 0),
       },
+    };
+  }
+
+  /**
+   * Break-even computation. Combines configured monthly fixed costs with the
+   * tenant's actual revenue/COGS performance over the chosen window to derive:
+   *
+   *  - avgMarginPercent     = (revenue - costs) / revenue          [0..1, scaled to %]
+   *  - avgUnitPrice         = revenue / unitsProduced              (windowed)
+   *  - avgUnitCost          = costs / unitsProduced                (windowed)
+   *  - contributionPerUnit  = avgUnitPrice - avgUnitCost
+   *  - breakEvenRevenue     = monthlyFixedCosts / marginPercent
+   *  - breakEvenUnits       = monthlyFixedCosts / contributionPerUnit
+   *  - currentMonthlyRevenue = revenue / windowMonths              (rolling avg)
+   *  - coverage             = currentMonthlyRevenue / breakEvenRevenue
+   *                           (>= 1 means we cover fixed costs; < 1 means
+   *                           we are below break-even)
+   *
+   * Edge cases (no data, zero margin, zero units) are surfaced as `null` in
+   * the relevant computed fields so the UI can render an explanatory state
+   * rather than NaN/Infinity.
+   */
+  async getBreakEven(tenantId: string, windowMonths = 12) {
+    const [stats, monthlyFixedCosts] = await Promise.all([
+      this.getStats(tenantId, windowMonths),
+      this.fixedCosts.sumActiveMonthly(tenantId),
+    ]);
+
+    const revenue = stats.totals.revenue;
+    const costs = stats.totals.costs;
+    const units = stats.totals.unitsProduced;
+
+    const marginPercent = revenue > 0 ? ((revenue - costs) / revenue) * 100 : null;
+    const avgUnitPrice = units > 0 ? revenue / units : null;
+    const avgUnitCost = units > 0 ? costs / units : null;
+    const contributionPerUnit =
+      avgUnitPrice !== null && avgUnitCost !== null
+        ? avgUnitPrice - avgUnitCost
+        : null;
+
+    const breakEvenRevenue =
+      marginPercent !== null && marginPercent > 0
+        ? monthlyFixedCosts / (marginPercent / 100)
+        : null;
+    const breakEvenUnits =
+      contributionPerUnit !== null && contributionPerUnit > 0
+        ? monthlyFixedCosts / contributionPerUnit
+        : null;
+
+    const currentMonthlyRevenue = revenue / windowMonths;
+    const coverage =
+      breakEvenRevenue !== null && breakEvenRevenue > 0
+        ? currentMonthlyRevenue / breakEvenRevenue
+        : null;
+
+    return {
+      windowMonths,
+      monthlyFixedCosts,
+      windowRevenue: revenue,
+      windowCosts: costs,
+      windowUnits: units,
+      avgMarginPercent: marginPercent,
+      avgUnitPrice,
+      avgUnitCost,
+      contributionPerUnit,
+      breakEvenRevenue,
+      breakEvenUnits,
+      currentMonthlyRevenue,
+      coverage,
     };
   }
 }

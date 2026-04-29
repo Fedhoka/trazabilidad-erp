@@ -19,6 +19,7 @@ import { ProductionModule } from './modules/production/production.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { FiscalModule } from './modules/fiscal/fiscal.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { FixedCostsModule } from './modules/fixed-costs/fixed-costs.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
@@ -111,6 +112,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     SalesModule,
     FiscalModule,
     DashboardModule,
+    FixedCostsModule,
     ReportsModule,
     RedisModule,
     SchedulerModule,

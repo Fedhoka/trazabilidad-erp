@@ -39,4 +39,13 @@ export class DashboardController {
   getSalesAnalytics(@CurrentUser() user: User) {
     return this.service.getSalesAnalytics(user.tenantId);
   }
+
+  /**
+   * Break-even analysis combining configured monthly fixed costs with the
+   * tenant's revenue/cost performance over a 12-month window.
+   */
+  @Get('break-even')
+  getBreakEven(@CurrentUser() user: User, @Query() query: StatsQueryDto) {
+    return this.service.getBreakEven(user.tenantId, query.months ?? 12);
+  }
 }

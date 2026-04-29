@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { DashboardService } from './dashboard.service';
+import type { FixedCostsService } from '../fixed-costs/fixed-costs.service';
 
 /**
  * Pure unit tests — DataSource is mocked, no DB connection required.
@@ -8,11 +9,20 @@ import { DashboardService } from './dashboard.service';
  * correctly given a representative result set.
  */
 
+function makeFixedCostsStub(monthlyTotal = 0): FixedCostsService {
+  return {
+    sumActiveMonthly: jest.fn().mockResolvedValue(monthlyTotal),
+  } as unknown as FixedCostsService;
+}
+
 function makeService(rows: unknown[]) {
   const ds = {
     query: jest.fn().mockResolvedValue(rows),
   } as unknown as DataSource;
-  return { service: new DashboardService(ds), query: ds.query as jest.Mock };
+  return {
+    service: new DashboardService(ds, makeFixedCostsStub()),
+    query: ds.query as jest.Mock,
+  };
 }
 
 /** Helper for getInventoryAnalytics which makes 4 parallel queries. */
@@ -26,7 +36,10 @@ function makeInventoryService(
   const ds = {
     query: jest.fn().mockImplementation(() => Promise.resolve(queue.shift() ?? [])),
   } as unknown as DataSource;
-  return { service: new DashboardService(ds), query: ds.query as jest.Mock };
+  return {
+    service: new DashboardService(ds, makeFixedCostsStub()),
+    query: ds.query as jest.Mock,
+  };
 }
 
 /** Helper for getSalesAnalytics which makes 4 parallel queries. */
@@ -40,7 +53,10 @@ function makeSalesService(
   const ds = {
     query: jest.fn().mockImplementation(() => Promise.resolve(queue.shift() ?? [])),
   } as unknown as DataSource;
-  return { service: new DashboardService(ds), query: ds.query as jest.Mock };
+  return {
+    service: new DashboardService(ds, makeFixedCostsStub()),
+    query: ds.query as jest.Mock,
+  };
 }
 
 describe('DashboardService.getStats', () => {
@@ -304,6 +320,98 @@ describe('DashboardService.getStats', () => {
     expect(a.topCustomers).toEqual([]);
     expect(a.topProducts).toEqual([]);
     expect(a.byCondicionIva).toEqual([]);
+  });
+
+  describe('break-even', () => {
+    /** Build a service whose getStats returns a controlled DashboardStats. */
+    function makeBreakEvenService(
+      monthlyFixedCosts: number,
+      totals: {
+        revenue: number;
+        costs: number;
+        unitsProduced: number;
+      },
+    ) {
+      // Stats query expects rows that the service will reduce into totals.
+      // Easiest: hand the service rows that sum exactly to the desired totals.
+      const ds = {
+        query: jest.fn().mockResolvedValue([
+          {
+            month: '2026-04',
+            revenue: String(totals.revenue),
+            invoice_count: '1',
+            costs: String(totals.costs),
+            units_produced: String(totals.unitsProduced),
+            purchases: '0',
+          },
+        ]),
+      } as unknown as DataSource;
+      const fc = makeFixedCostsStub(monthlyFixedCosts);
+      return new DashboardService(ds, fc);
+    }
+
+    it('computes break-even metrics from stats + fixed costs', async () => {
+      // 12 months window with totals: revenue 120k, costs 72k, 1200 units.
+      // marginPercent = (120 - 72) / 120 = 40%
+      // avgUnitPrice = 120000 / 1200 = 100
+      // avgUnitCost  = 72000 / 1200  = 60
+      // contribution = 40
+      // monthly fixed = 5000
+      // breakEvenRevenue = 5000 / 0.4 = 12500
+      // breakEvenUnits   = 5000 / 40   = 125
+      // currentMonthlyRevenue = 120000 / 12 = 10000
+      // coverage = 10000 / 12500 = 0.8
+      const service = makeBreakEvenService(5000, {
+        revenue: 120000,
+        costs: 72000,
+        unitsProduced: 1200,
+      });
+
+      const r = await service.getBreakEven('tenant-1', 12);
+
+      expect(r.monthlyFixedCosts).toBe(5000);
+      expect(r.windowMonths).toBe(12);
+      expect(r.avgMarginPercent).toBeCloseTo(40);
+      expect(r.avgUnitPrice).toBeCloseTo(100);
+      expect(r.avgUnitCost).toBeCloseTo(60);
+      expect(r.contributionPerUnit).toBeCloseTo(40);
+      expect(r.breakEvenRevenue).toBeCloseTo(12500);
+      expect(r.breakEvenUnits).toBeCloseTo(125);
+      expect(r.currentMonthlyRevenue).toBeCloseTo(10000);
+      expect(r.coverage).toBeCloseTo(0.8);
+    });
+
+    it('surfaces null computed fields when revenue is zero', async () => {
+      const service = makeBreakEvenService(5000, {
+        revenue: 0,
+        costs: 0,
+        unitsProduced: 0,
+      });
+      const r = await service.getBreakEven('tenant-1', 12);
+
+      expect(r.avgMarginPercent).toBeNull();
+      expect(r.avgUnitPrice).toBeNull();
+      expect(r.avgUnitCost).toBeNull();
+      expect(r.contributionPerUnit).toBeNull();
+      expect(r.breakEvenRevenue).toBeNull();
+      expect(r.breakEvenUnits).toBeNull();
+      expect(r.coverage).toBeNull();
+    });
+
+    it('returns null break-even when margin is non-positive', async () => {
+      // Selling at a loss: revenue=100, costs=120 → margin -20%.
+      const service = makeBreakEvenService(5000, {
+        revenue: 100,
+        costs: 120,
+        unitsProduced: 10,
+      });
+      const r = await service.getBreakEven('tenant-1', 1);
+
+      expect(r.avgMarginPercent).toBeCloseTo(-20);
+      // Margin <= 0 → cannot break even. Both null.
+      expect(r.breakEvenRevenue).toBeNull();
+      expect(r.breakEvenUnits).toBeNull();
+    });
   });
 
   it('returns an empty months array and zero totals for a tenant with no data', async () => {
