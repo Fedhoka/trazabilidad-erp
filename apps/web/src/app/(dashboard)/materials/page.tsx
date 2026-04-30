@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Package } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
@@ -218,8 +220,18 @@ export default function MaterialsPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                  Sin materiales. Creá el primero.
+                <TableCell colSpan={8} className="p-0">
+                  <EmptyState
+                    icon={Package}
+                    title="No hay materiales cargados"
+                    description="Definí los insumos y productos terminados que vas a producir o vender. Después podés cargar lotes de cada uno."
+                    action={
+                      <Button onClick={openCreate} className="gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        Nuevo material
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             )}

@@ -7,7 +7,8 @@ import { downloadReport } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Download } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Download, Layers } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
@@ -175,8 +176,12 @@ export default function InventoryPage() {
             <TableBody>
               {lots.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    Sin lotes en esta categoría.
+                  <TableCell colSpan={8} className="p-0">
+                    <EmptyState
+                      icon={Layers}
+                      title="Sin lotes en esta categoría"
+                      description="Los lotes aparecen acá cuando recibís una orden de compra o completás una orden de producción."
+                    />
                   </TableCell>
                 </TableRow>
               )}

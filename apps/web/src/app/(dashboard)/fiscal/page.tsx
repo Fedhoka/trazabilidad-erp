@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Receipt as ReceiptIcon, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -143,8 +145,13 @@ export default function FiscalPage() {
                 ))}
               {!posLoading && posList?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
-                    Sin puntos de venta. Creá el primero.
+                  <TableCell colSpan={3} className="p-0">
+                    <EmptyState
+                      icon={Store}
+                      title="Sin puntos de venta"
+                      description="Cada punto de venta corresponde a una serie de comprobantes en AFIP. Tenés que darlos de alta primero en el portal."
+                      compact
+                    />
                   </TableCell>
                 </TableRow>
               )}
@@ -205,8 +212,12 @@ export default function FiscalPage() {
                 ))}
               {!invLoading && invResult?.data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                    Sin facturas emitidas.
+                  <TableCell colSpan={10} className="p-0">
+                    <EmptyState
+                      icon={ReceiptIcon}
+                      title="Sin facturas emitidas"
+                      description="Las facturas se generan al confirmar un Pedido de venta y autorizarlas con AFIP."
+                    />
                   </TableCell>
                 </TableRow>
               )}

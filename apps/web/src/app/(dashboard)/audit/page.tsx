@@ -6,6 +6,8 @@ import { es } from 'date-fns/locale';
 import { useAuditLogs, type AuditAction } from '@/hooks/use-audit';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ClipboardList } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { PageHeader } from '@/components/layout/page-header';
 import {
@@ -65,8 +67,12 @@ export default function AuditPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                  Sin registros de auditoría todavía.
+                <TableCell colSpan={6} className="p-0">
+                  <EmptyState
+                    icon={ClipboardList}
+                    title="Sin registros de auditoría todavía"
+                    description="Cada vez que un usuario crea, modifica o borra algo, queda registrado acá. Después de unos días vas a ver actividad."
+                  />
                 </TableCell>
               </TableRow>
             )}

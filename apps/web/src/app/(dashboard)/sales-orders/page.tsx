@@ -16,6 +16,8 @@ import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { FileText } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -272,8 +274,18 @@ export default function SalesOrdersPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  Sin pedidos de venta.
+                <TableCell colSpan={6} className="p-0">
+                  <EmptyState
+                    icon={FileText}
+                    title="Aún no hay pedidos de venta"
+                    description="Creá tu primer pedido para confirmar precios, reservar stock y emitir factura cuando esté listo."
+                    action={
+                      <Button onClick={() => setOpen(true)} className="gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        Nuevo pedido
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             )}

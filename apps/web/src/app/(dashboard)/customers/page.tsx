@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Users } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
@@ -213,8 +215,18 @@ export default function CustomersPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  Sin clientes. Creá el primero.
+                <TableCell colSpan={6} className="p-0">
+                  <EmptyState
+                    icon={Users}
+                    title="Sin clientes en la cartera"
+                    description="Cargá tu primer cliente para empezar a registrar pedidos y emitir facturas."
+                    action={
+                      <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        Nuevo cliente
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             )}

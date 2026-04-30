@@ -24,6 +24,8 @@ import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Factory, ChefHat } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -427,8 +429,12 @@ export default function ProductionPage() {
                   ))}
                 {!poLoading && ordersResult?.data.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      Sin órdenes de producción.
+                    <TableCell colSpan={6} className="p-0">
+                      <EmptyState
+                        icon={Factory}
+                        title="Sin órdenes de producción"
+                        description="Una orden de producción consume insumos según la receta y genera un lote terminado con su trazabilidad."
+                      />
                     </TableCell>
                   </TableRow>
                 )}
@@ -517,8 +523,12 @@ function RecipeTable({
             ))}
           {!isLoading && recipes?.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                Sin recetas. Creá la primera.
+              <TableCell colSpan={7} className="p-0">
+                <EmptyState
+                  icon={ChefHat}
+                  title="Aún no hay recetas"
+                  description="Definí qué insumos consume cada producto terminado. Después podés activar la receta para usarla en órdenes de producción."
+                />
               </TableCell>
             </TableRow>
           )}

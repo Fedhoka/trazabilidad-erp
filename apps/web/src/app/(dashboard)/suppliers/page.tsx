@@ -18,6 +18,8 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Truck } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Dialog,
@@ -187,8 +189,18 @@ export default function SuppliersPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                  Sin proveedores. Creá el primero.
+                <TableCell colSpan={7} className="p-0">
+                  <EmptyState
+                    icon={Truck}
+                    title="Aún no cargaste proveedores"
+                    description="Cargá tu primer proveedor para empezar a registrar compras y trazar la procedencia de cada lote."
+                    action={
+                      <Button onClick={openCreate} className="gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        Nuevo proveedor
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             )}

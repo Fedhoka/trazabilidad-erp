@@ -18,6 +18,8 @@ import { PageHeader } from '@/components/layout/page-header';
 import { QuickCreateInsumo } from '@/components/forms/quick-create-insumo';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ShoppingCart } from 'lucide-react';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -353,8 +355,18 @@ export default function ProcurementPage() {
               ))}
             {!isLoading && result?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  Sin órdenes de compra.
+                <TableCell colSpan={6} className="p-0">
+                  <EmptyState
+                    icon={ShoppingCart}
+                    title="Sin órdenes de compra"
+                    description="Cuando aprobés una OC y recibás la mercadería, los lotes ingresan automáticamente al inventario con su trazabilidad."
+                    action={
+                      <Button onClick={() => setOpen(true)} className="gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        Nueva OC
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             )}

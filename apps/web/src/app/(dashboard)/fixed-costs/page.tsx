@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Calculator } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import {
   Dialog,
@@ -225,11 +227,18 @@ export default function FixedCostsPage() {
             ))}
           {!isLoading && (costs ?? []).length === 0 && (
             <TableRow>
-              <TableCell
-                colSpan={5}
-                className="py-12 text-center text-muted-foreground"
-              >
-                Aún no cargaste costos fijos. Empezá con el alquiler o los sueldos.
+              <TableCell colSpan={5} className="p-0">
+                <EmptyState
+                  icon={Calculator}
+                  title="Aún no cargaste costos fijos"
+                  description="Cargá los gastos mensuales que tenés sí o sí (alquiler, sueldos, servicios). Sin esto, el punto de equilibrio no se puede calcular."
+                  action={
+                    <Button onClick={openCreate} className="gap-2">
+                      <PlusCircle className="h-4 w-4" />
+                      Cargar costo fijo
+                    </Button>
+                  }
+                />
               </TableCell>
             </TableRow>
           )}
