@@ -227,7 +227,9 @@ export default function SODetailPage({ params }: { params: Promise<{ id: string 
         <Button variant="ghost" size="icon" onClick={() => router.push('/sales-orders')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">Pedido #{so.number}</h1>
+        <h1 className="font-heading text-[1.875rem] font-medium leading-tight tracking-tight text-foreground">
+          Pedido #{so.number}
+        </h1>
         <Badge
           variant={
             so.status === 'CONFIRMED' || so.status === 'SHIPPED'

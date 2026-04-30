@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatNumber, formatMonthLabel } from '@/lib/format';
+import { axisTick, ChartTooltipCard, gridStyle } from './chart-defs';
 import type { MonthlyStatPoint } from '@/hooks/use-dashboard';
 
 interface ProductionChartProps {
@@ -27,7 +28,6 @@ interface ProductionChartProps {
 
 interface TooltipPayload {
   payload: MonthlyStatPoint;
-  value: number;
 }
 
 function ChartTooltip({
@@ -42,25 +42,21 @@ function ChartTooltip({
   if (!active || !payload?.length || !label) return null;
   const point = payload[0]!.payload;
   return (
-    <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-elevated">
-      <p className="mb-1.5 font-semibold capitalize text-foreground">
-        {formatMonthLabel(label)}
-      </p>
-      <div className="space-y-0.5">
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Unidades producidas</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.unitsProduced, { maximumFractionDigits: 2 })}
-          </span>
-        </p>
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Facturas emitidas</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.invoiceCount)}
-          </span>
-        </p>
-      </div>
-    </div>
+    <ChartTooltipCard
+      title={<span className="capitalize">{formatMonthLabel(label)}</span>}
+      rows={[
+        {
+          label: 'Unidades',
+          value: formatNumber(point.unitsProduced, { maximumFractionDigits: 2 }),
+          color: 'var(--chart-3)',
+        },
+        {
+          label: 'Facturas',
+          value: formatNumber(point.invoiceCount),
+          color: 'var(--chart-5)',
+        },
+      ]}
+    />
   );
 }
 
@@ -82,23 +78,19 @@ export function ProductionBarChart({ data, loading }: ProductionChartProps) {
               <BarChart
                 data={data ?? []}
                 margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                barCategoryGap="20%"
+                barCategoryGap="22%"
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  vertical={false}
-                />
+                <CartesianGrid {...gridStyle} vertical={false} />
                 <XAxis
                   dataKey="month"
-                  tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                  tick={axisTick}
                   tickFormatter={formatMonthLabel}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   yAxisId="units"
-                  tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                  tick={axisTick}
                   tickFormatter={(v) => formatNumber(v)}
                   axisLine={false}
                   tickLine={false}
@@ -107,7 +99,7 @@ export function ProductionBarChart({ data, loading }: ProductionChartProps) {
                 <YAxis
                   yAxisId="count"
                   orientation="right"
-                  tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                  tick={axisTick}
                   tickFormatter={(v) => formatNumber(v)}
                   axisLine={false}
                   tickLine={false}
@@ -115,23 +107,23 @@ export function ProductionBarChart({ data, loading }: ProductionChartProps) {
                 />
                 <Tooltip
                   content={<ChartTooltip />}
-                  cursor={{ fill: 'var(--accent)', opacity: 0.4 }}
+                  cursor={{ fill: 'var(--accent)', opacity: 0.45 }}
                 />
                 <Bar
                   yAxisId="units"
                   dataKey="unitsProduced"
                   name="Unidades producidas"
-                  fill="var(--chart-2)"
+                  fill="var(--chart-3)"
                   radius={[4, 4, 0, 0]}
-                  maxBarSize={36}
+                  maxBarSize={32}
                 />
                 <Bar
                   yAxisId="count"
                   dataKey="invoiceCount"
                   name="Facturas"
-                  fill="var(--chart-3)"
+                  fill="var(--chart-5)"
                   radius={[4, 4, 0, 0]}
-                  maxBarSize={36}
+                  maxBarSize={32}
                 />
               </BarChart>
             </ResponsiveContainer>

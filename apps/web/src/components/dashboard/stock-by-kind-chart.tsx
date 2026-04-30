@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatNumber } from '@/lib/format';
+import { ChartTooltipCard } from './chart-defs';
 import type { StockByKindEntry, MaterialKind } from '@/hooks/use-dashboard';
 
 const KIND_LABEL: Record<MaterialKind, string> = {
@@ -19,7 +20,8 @@ const KIND_LABEL: Record<MaterialKind, string> = {
   FINISHED: 'Producto terminado',
 };
 
-// Pull from CSS vars so dark/light mode stay coherent.
+// Semantic slot mapping — RAW gets the brand color (it's the most common),
+// FINISHED gets olive (positive), others fall in line.
 const KIND_COLOR: Record<MaterialKind, string> = {
   RAW: 'var(--chart-1)',
   PACKAGING: 'var(--chart-2)',
@@ -47,31 +49,21 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0]!.payload;
   return (
-    <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-elevated">
-      <p className="mb-1.5 font-semibold text-foreground">
-        {KIND_LABEL[point.kind] ?? point.kind}
-      </p>
-      <div className="space-y-0.5">
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Valor</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatCurrency(point.value)}
-          </span>
-        </p>
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Lotes</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.lots)}
-          </span>
-        </p>
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Unidades</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.units, { maximumFractionDigits: 2 })}
-          </span>
-        </p>
-      </div>
-    </div>
+    <ChartTooltipCard
+      title={KIND_LABEL[point.kind] ?? point.kind}
+      rows={[
+        {
+          label: 'Valor',
+          value: formatCurrency(point.value),
+          color: KIND_COLOR[point.kind],
+        },
+        { label: 'Lotes', value: formatNumber(point.lots) },
+        {
+          label: 'Unidades',
+          value: formatNumber(point.units, { maximumFractionDigits: 2 }),
+        },
+      ]}
+    />
   );
 }
 

@@ -18,7 +18,6 @@ import {
   ClipboardList,
   ChevronsLeft,
   ChevronsRight,
-  Sprout,
   BarChart3,
   Calculator,
   Scale,
@@ -130,17 +129,25 @@ export function Sidebar() {
         )}
       >
       {/* ── Brand header ─────────────────────────────────────────── */}
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Sprout className="size-5" aria-hidden />
-        </div>
+      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-3">
+        <Link
+          href="/dashboard"
+          aria-label="trazabilidad — Inicio"
+          onClick={closeMobile}
+          className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-shadow duration-(--duration-fast) ease-(--ease-snap) hover:shadow-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+        >
+          {/* Reversed lowercase 't' built from positioned spans (no font dep) */}
+          <span className="absolute h-[18px] w-[3px] rounded-[1.5px] bg-primary-foreground" style={{ left: 16, top: 7 }} aria-hidden />
+          <span className="absolute h-[3px] w-[11px] rounded-[1.5px] bg-primary-foreground" style={{ left: 12, top: 12 }} aria-hidden />
+          <span className="absolute size-[5px] rounded-full bg-primary-foreground" style={{ right: 6, bottom: 6 }} aria-hidden />
+        </Link>
         <span
           className={cn(
-            'flex-1 truncate text-sm font-semibold tracking-tight transition-opacity duration-150',
+            'flex-1 truncate font-heading text-[1.05rem] font-medium tracking-tight transition-opacity duration-(--duration-fast)',
             collapsed && 'pointer-events-none opacity-0',
           )}
         >
-          Trazabilidad
+          trazabilidad
         </span>
         <button
           type="button"

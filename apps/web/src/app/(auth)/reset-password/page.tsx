@@ -11,7 +11,6 @@ import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const schema = z
   .object({
@@ -54,11 +53,10 @@ function ResetPasswordForm() {
         <p className="text-sm text-destructive">
           Enlace inválido. Solicitá uno nuevo.
         </p>
-        <Link
-          href="/forgot-password"
-          className="inline-flex w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
-        >
-          Solicitar nuevo enlace
+        <Link href="/forgot-password">
+          <Button variant="outline" className="w-full">
+            Solicitar nuevo enlace
+          </Button>
         </Link>
       </div>
     );
@@ -87,14 +85,19 @@ function ResetPasswordForm() {
           {...register('confirmPassword')}
         />
         {errors.confirmPassword && (
-          <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+          <p className="text-xs text-destructive">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? 'Actualizando…' : 'Establecer contraseña'}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        <Link href="/login" className="underline underline-offset-4">
+        <Link
+          href="/login"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
           Volver al inicio de sesión
         </Link>
       </p>
@@ -104,17 +107,23 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Nueva contraseña</CardTitle>
-        <CardDescription>Elegí una contraseña segura para tu cuenta.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* useSearchParams() requires a Suspense boundary in Next.js */}
-        <Suspense fallback={<p className="text-sm text-muted-foreground">Cargando…</p>}>
-          <ResetPasswordForm />
-        </Suspense>
-      </CardContent>
-    </Card>
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="font-heading text-[1.875rem] font-medium leading-tight tracking-tight text-foreground">
+          Nueva contraseña
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Elegí una contraseña segura — mínimo 8 caracteres.
+        </p>
+      </div>
+
+      <Suspense
+        fallback={
+          <p className="text-sm text-muted-foreground">Cargando…</p>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
+    </div>
   );
 }

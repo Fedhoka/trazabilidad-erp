@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Menu, Search } from 'lucide-react';
+import { ChevronRight, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMobileSidebar } from '@/context/mobile-sidebar-context';
 
@@ -65,7 +65,7 @@ export function Topbar() {
   const { toggle: toggleMobile } = useMobileSidebar();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/65 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-6">
       {/* ── Mobile menu trigger ──────────────────────────────────── */}
       <button
         type="button"
@@ -90,7 +90,7 @@ export function Topbar() {
                 key={`${crumb.label}-${i}`}
                 className={cn(
                   'flex min-w-0 items-center gap-1.5',
-                  // On mobile only show the current (last) crumb to save space
+                  // On mobile only show the current (last) crumb
                   !isLast && 'hidden md:flex',
                 )}
               >
@@ -111,7 +111,9 @@ export function Topbar() {
                   <span
                     className={cn(
                       'truncate',
-                      isLast ? 'font-medium text-foreground' : 'text-muted-foreground',
+                      isLast
+                        ? 'font-medium text-foreground'
+                        : 'text-muted-foreground',
                     )}
                     aria-current={isLast ? 'page' : undefined}
                   >
@@ -124,32 +126,12 @@ export function Topbar() {
         </ol>
       </nav>
 
-      {/* ── Global search (UI only — wiring in a later step) ─────── */}
-      <div className="relative hidden min-w-[260px] sm:block">
-        <Search
-          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden
-        />
-        <input
-          type="search"
-          placeholder="Buscar…"
-          aria-label="Búsqueda global"
-          // Currently inert; styling is real but onSubmit is a no-op until wired up.
-          className={cn(
-            'h-9 w-full rounded-lg border border-input bg-background pl-9 pr-12 text-sm',
-            'placeholder:text-muted-foreground/70',
-            'transition-[border-color,box-shadow] outline-none',
-            'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30',
-            'dark:bg-input/30',
-          )}
-        />
-        <kbd
-          aria-hidden
-          className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border border-border bg-muted/60 px-1.5 font-mono text-[0.65rem] font-medium text-muted-foreground sm:inline-flex"
-        >
-          /
-        </kbd>
-      </div>
+      {/*
+        Search was previously here but inert. Removed until cmd+K palette
+        ships as a real feature — a non-functional input is worse than no
+        input. Right side reserved for future actions (notifications,
+        user menu, command palette trigger).
+      */}
     </header>
   );
 }

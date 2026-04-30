@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatNumber } from '@/lib/format';
+import { ChartTooltipCard } from './chart-defs';
 import type { CondicionIva, CondicionIvaEntry } from '@/hooks/use-dashboard';
 
 const IVA_LABEL: Record<CondicionIva, string> = {
@@ -46,31 +47,18 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0]!.payload;
   return (
-    <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-elevated">
-      <p className="mb-1.5 font-semibold text-foreground">
-        {IVA_LABEL[point.condicionIva] ?? point.condicionIva}
-      </p>
-      <div className="space-y-0.5">
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Facturado</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatCurrency(point.revenue)}
-          </span>
-        </p>
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Clientes</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.customers)}
-          </span>
-        </p>
-        <p className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">Facturas</span>
-          <span className="font-mono font-medium text-foreground">
-            {formatNumber(point.invoiceCount)}
-          </span>
-        </p>
-      </div>
-    </div>
+    <ChartTooltipCard
+      title={IVA_LABEL[point.condicionIva] ?? point.condicionIva}
+      rows={[
+        {
+          label: 'Facturado',
+          value: formatCurrency(point.revenue),
+          color: IVA_COLOR[point.condicionIva],
+        },
+        { label: 'Clientes', value: formatNumber(point.customers) },
+        { label: 'Facturas', value: formatNumber(point.invoiceCount) },
+      ]}
+    />
   );
 }
 

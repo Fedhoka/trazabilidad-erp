@@ -28,7 +28,9 @@ export default function TraceabilityPage() {
         <Button variant="ghost" size="icon" onClick={() => router.push('/production')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">Trazabilidad</h1>
+        <h1 className="font-heading text-[1.875rem] font-medium leading-tight tracking-tight text-foreground">
+          Trazabilidad
+        </h1>
       </div>
 
       <div className="flex gap-2 max-w-lg">

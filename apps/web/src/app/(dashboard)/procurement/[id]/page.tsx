@@ -126,10 +126,17 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/procurement')}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push('/procurement')}
+          aria-label="Volver a Compras"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">OC #{po.number}</h1>
+        <h1 className="font-heading text-[1.875rem] font-medium leading-tight tracking-tight text-foreground">
+          OC #{po.number}
+        </h1>
         <Badge
           variant={
             po.status === 'APPROVED'

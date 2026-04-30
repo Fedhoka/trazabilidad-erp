@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -12,11 +12,14 @@ interface MetricCardProps {
   invertColors?: boolean;
   icon?: React.ElementType;
   loading?: boolean;
+  /** Featured size — bigger value, used for the dashboard hero KPI. */
+  featured?: boolean;
 }
 
 /**
- * Compact KPI card with the value, an optional MoM delta chip, and a status
- * icon. Used across the new stats dashboard.
+ * KPI card. The headline number uses Fraunces (display serif) at a generous
+ * size for editorial gravity; secondary chrome (label, delta, icon) stays in
+ * Inter. Tabular figures by default so columns align in a strip.
  */
 export function MetricCard({
   label,
@@ -25,12 +28,12 @@ export function MetricCard({
   invertColors,
   icon: Icon,
   loading,
+  featured = false,
 }: MetricCardProps) {
   const hasDelta = typeof delta === 'number' && Number.isFinite(delta);
   const isPositive = hasDelta && delta! > 0.05;
   const isNegative = hasDelta && delta! < -0.05;
 
-  // For "good when up" metrics: green=up, red=down. For "good when down" (costs): inverted.
   const goodTone = invertColors ? 'text-destructive' : 'text-success';
   const badTone = invertColors ? 'text-success' : 'text-destructive';
 
@@ -40,20 +43,31 @@ export function MetricCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {label}
-        </CardTitle>
-        {Icon ? <Icon className="size-4 text-muted-foreground" aria-hidden /> : null}
-      </CardHeader>
-      <CardContent className="space-y-1">
+      <CardContent className="space-y-3 pt-1">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            {label}
+          </p>
+          {Icon ? (
+            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
+              <Icon className="size-3.5" aria-hidden />
+            </span>
+          ) : null}
+        </div>
+
         {loading ? (
-          <Skeleton className="h-8 w-28" />
+          <Skeleton className={cn('w-32', featured ? 'h-12' : 'h-9')} />
         ) : (
-          <div className="font-mono text-2xl font-semibold tracking-tight">
+          <p
+            className={cn(
+              'font-heading font-medium leading-none tabular-nums tracking-tight text-foreground',
+              featured ? 'text-[2.5rem]' : 'text-[1.75rem]',
+            )}
+          >
             {value}
-          </div>
+          </p>
         )}
+
         {hasDelta ? (
           <div
             className={cn(
@@ -69,15 +83,23 @@ export function MetricCard({
             ) : (
               <Minus className="size-3.5" aria-hidden />
             )}
-            <span>
+            <span className="tabular-nums">
               {delta! > 0 ? '+' : ''}
               {delta!.toFixed(1).replace('.', ',')} %
             </span>
-            <span className="font-normal text-muted-foreground">vs. mes anterior</span>
+            <span className="font-normal text-muted-foreground">
+              vs. mes anterior
+            </span>
           </div>
         ) : delta === null ? (
-          <p className="text-xs text-muted-foreground">— sin datos del mes anterior</p>
-        ) : null}
+          <p className="text-xs text-muted-foreground">
+            — sin datos del mes anterior
+          </p>
+        ) : (
+          // Reserve vertical rhythm so cards in a row stay aligned even
+          // when one has no delta to show.
+          <div className="h-4" aria-hidden />
+        )}
       </CardContent>
     </Card>
   );

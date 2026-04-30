@@ -89,7 +89,9 @@ export default function ProductionOrderDetailPage({
         <Button variant="ghost" size="icon" onClick={() => router.push('/production')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">OP #{po.number}</h1>
+        <h1 className="font-heading text-[1.875rem] font-medium leading-tight tracking-tight text-foreground">
+          OP #{po.number}
+        </h1>
         <Badge variant={STATUS_VARIANT[po.status]}>{po.status}</Badge>
       </div>
 
