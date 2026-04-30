@@ -22,6 +22,7 @@ import {
   BarChart3,
   Calculator,
   Scale,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -73,6 +74,7 @@ const navSections: NavSection[] = [
       { href: '/customers', label: 'Clientes', icon: Users },
       { href: '/sales-orders', label: 'Ventas', icon: FileText },
       { href: '/fiscal', label: 'Fiscal', icon: Receipt },
+      { href: '/help/afip', label: 'Manual AFIP', icon: BookOpen },
     ],
   },
   {

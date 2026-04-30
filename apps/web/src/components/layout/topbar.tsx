@@ -21,6 +21,8 @@ const ROUTE_NAMES: Record<string, string> = {
   fiscal: 'Fiscal',
   'fixed-costs': 'Costos fijos',
   'break-even': 'Punto de equilibrio',
+  help: 'Ayuda',
+  afip: 'AFIP',
   users: 'Usuarios',
   audit: 'Auditoría',
 };
