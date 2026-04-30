@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Search } from 'lucide-react';
+import { ChevronRight, Menu, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMobileSidebar } from '@/context/mobile-sidebar-context';
 
 /** Static segment label map. Anything not here is title-cased. */
 const ROUTE_NAMES: Record<string, string> = {
@@ -61,16 +62,38 @@ function buildCrumbs(pathname: string): Crumb[] {
 export function Topbar() {
   const pathname = usePathname();
   const crumbs = buildCrumbs(pathname);
+  const { toggle: toggleMobile } = useMobileSidebar();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/60 bg-background/85 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/65">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/65 sm:px-6">
+      {/* ── Mobile menu trigger ──────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={toggleMobile}
+        aria-label="Abrir menú"
+        className={cn(
+          'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors md:hidden',
+          'hover:bg-muted hover:text-foreground',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        )}
+      >
+        <Menu className="size-5" aria-hidden />
+      </button>
+
       {/* ── Breadcrumbs ──────────────────────────────────────────── */}
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
         <ol className="flex items-center gap-1.5 text-sm">
           {crumbs.map((crumb, i) => {
             const isLast = i === crumbs.length - 1;
             return (
-              <li key={`${crumb.label}-${i}`} className="flex min-w-0 items-center gap-1.5">
+              <li
+                key={`${crumb.label}-${i}`}
+                className={cn(
+                  'flex min-w-0 items-center gap-1.5',
+                  // On mobile only show the current (last) crumb to save space
+                  !isLast && 'hidden md:flex',
+                )}
+              >
                 {i > 0 && (
                   <ChevronRight
                     className="size-3.5 shrink-0 text-muted-foreground/60"

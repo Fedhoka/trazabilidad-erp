@@ -30,6 +30,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed';
 import { initialsFromEmail, roleLabel } from '@/lib/display';
+import { useMobileSidebar } from '@/context/mobile-sidebar-context';
 
 type NavItem = {
   href: string;
@@ -92,6 +93,7 @@ export function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { collapsed, toggle, hydrated } = useSidebarCollapsed();
+  const { open: mobileOpen, close: closeMobile } = useMobileSidebar();
 
   function handleLogout() {
     logout();
@@ -99,18 +101,34 @@ export function Sidebar() {
   }
 
   return (
-    <aside
-      // suppressHydrationWarning so localStorage-driven width doesn't yell on first paint
-      suppressHydrationWarning
-      data-collapsed={collapsed || undefined}
-      className={cn(
-        'group/sidebar relative flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground',
-        'transition-[width] duration-200 ease-out',
-        collapsed ? 'w-[68px]' : 'w-64',
-        // Avoid mid-flight transition before hydration
-        !hydrated && 'transition-none',
-      )}
-    >
+    <>
+      {/* ── Mobile backdrop ──────────────────────────────────────── */}
+      <div
+        onClick={closeMobile}
+        aria-hidden
+        className={cn(
+          'fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-200 md:hidden',
+          mobileOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none',
+        )}
+      />
+
+      <aside
+        // suppressHydrationWarning so localStorage-driven width doesn't yell on first paint
+        suppressHydrationWarning
+        data-collapsed={collapsed || undefined}
+        className={cn(
+          'group/sidebar fixed z-50 flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:relative md:z-auto',
+          'transition-[width,transform] duration-200 ease-out',
+          collapsed ? 'md:w-[68px]' : 'md:w-64',
+          // Mobile: always full-width (forced expanded), slide in from left.
+          'w-72',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          // Avoid mid-flight transition before hydration
+          !hydrated && 'transition-none',
+        )}
+      >
       {/* ── Brand header ─────────────────────────────────────────── */}
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
@@ -129,7 +147,7 @@ export function Sidebar() {
           onClick={toggle}
           aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           className={cn(
-            'inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors',
+            'hidden size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors md:inline-flex',
             'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
           )}
@@ -170,6 +188,7 @@ export function Sidebar() {
                       <Link
                         href={href}
                         title={collapsed ? label : undefined}
+                        onClick={closeMobile}
                         className={cn(
                           'group/nav-item relative flex h-9 items-center gap-3 rounded-md px-2.5 text-sm transition-colors',
                           isActive
@@ -268,6 +287,7 @@ export function Sidebar() {
           </span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
