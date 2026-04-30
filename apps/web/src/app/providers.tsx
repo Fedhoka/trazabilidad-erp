@@ -33,7 +33,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           {children}
-          <Toaster richColors position="top-right" closeButton />
+          <Toaster
+            richColors
+            position="top-right"
+            closeButton
+            duration={4500}
+            toastOptions={{
+              classNames: {
+                toast: 'group/toast',
+              },
+            }}
+          />
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

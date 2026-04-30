@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
+import { LoadingBlock } from '@/components/ui/loading-spinner';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -19,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading || !user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <span className="text-sm text-muted-foreground">Cargando…</span>
+        <LoadingBlock label="Cargando sesión…" />
       </div>
     );
   }
