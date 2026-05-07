@@ -140,6 +140,29 @@ export interface CondicionIvaEntry {
   invoiceCount: number;
 }
 
+export type InvoiceType = 'A' | 'B' | 'C';
+export type PaymentMethod =
+  | 'CASH'
+  | 'BANK_TRANSFER'
+  | 'DEBIT_CARD'
+  | 'CREDIT_CARD'
+  | 'MERCADOPAGO'
+  | 'CHECK'
+  | 'CURRENT_ACCOUNT'
+  | 'OTHER';
+
+export interface InvoiceTypeEntry {
+  invoiceType: InvoiceType;
+  revenue: number;
+  invoiceCount: number;
+}
+
+export interface PaymentMethodEntry {
+  paymentMethod: PaymentMethod;
+  revenue: number;
+  invoiceCount: number;
+}
+
 export interface SalesAnalytics {
   topCustomers: TopCustomerEntry[];
   topProducts: TopProductEntry[];
@@ -149,6 +172,8 @@ export interface SalesAnalytics {
     invoiceCount: number;
     average: number;
   };
+  byInvoiceType: InvoiceTypeEntry[];
+  byPaymentMethod: PaymentMethodEntry[];
 }
 
 export function useSalesAnalytics() {

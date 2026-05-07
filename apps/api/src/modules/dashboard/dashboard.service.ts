@@ -395,9 +395,25 @@ export class DashboardService {
       invoice_count: string;
       avg_ticket: string;
     };
+    type InvoiceTypeRow = {
+      invoice_type: string;
+      revenue: string;
+      invoice_count: string;
+    };
+    type PaymentMethodRow = {
+      payment_method: string;
+      revenue: string;
+      invoice_count: string;
+    };
 
-    const [topCustomersRows, topProductsRows, condicionRows, ticketRows] =
-      await Promise.all([
+    const [
+      topCustomersRows,
+      topProductsRows,
+      condicionRows,
+      ticketRows,
+      invoiceTypeRows,
+      paymentMethodRows,
+    ] = await Promise.all([
         this.ds.query<CustomerRow[]>(
           `
           SELECT
@@ -470,6 +486,36 @@ export class DashboardService {
           `,
           [tenantId],
         ),
+        this.ds.query<InvoiceTypeRow[]>(
+          `
+          SELECT
+            invoice_type                         AS invoice_type,
+            COALESCE(SUM(net_amount), 0)::text   AS revenue,
+            COUNT(*)::text                       AS invoice_count
+          FROM invoices
+          WHERE tenant_id = $1
+            AND status = 'AUTHORIZED'
+            AND COALESCE(issued_at, created_at) >= NOW() - INTERVAL '12 months'
+          GROUP BY invoice_type
+          ORDER BY revenue DESC;
+          `,
+          [tenantId],
+        ),
+        this.ds.query<PaymentMethodRow[]>(
+          `
+          SELECT
+            payment_method                       AS payment_method,
+            COALESCE(SUM(net_amount), 0)::text   AS revenue,
+            COUNT(*)::text                       AS invoice_count
+          FROM invoices
+          WHERE tenant_id = $1
+            AND status = 'AUTHORIZED'
+            AND COALESCE(issued_at, created_at) >= NOW() - INTERVAL '12 months'
+          GROUP BY payment_method
+          ORDER BY revenue DESC;
+          `,
+          [tenantId],
+        ),
       ]);
 
     return {
@@ -498,6 +544,16 @@ export class DashboardService {
         invoiceCount: Number(ticketRows[0]?.invoice_count ?? 0),
         average: Number(ticketRows[0]?.avg_ticket ?? 0),
       },
+      byInvoiceType: invoiceTypeRows.map((r) => ({
+        invoiceType: r.invoice_type,
+        revenue: Number(r.revenue),
+        invoiceCount: Number(r.invoice_count),
+      })),
+      byPaymentMethod: paymentMethodRows.map((r) => ({
+        paymentMethod: r.payment_method,
+        revenue: Number(r.revenue),
+        invoiceCount: Number(r.invoice_count),
+      })),
     };
   }
 

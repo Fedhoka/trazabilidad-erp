@@ -2,7 +2,12 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import { PaginationDto, paginateMeta } from '../../common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Invoice, InvoiceStatus, InvoiceType } from './entities/invoice.entity';
+import {
+  Invoice,
+  InvoiceStatus,
+  InvoiceType,
+  PaymentMethod,
+} from './entities/invoice.entity';
 import { InvoiceLine } from './entities/invoice-line.entity';
 import { PointOfSale } from './entities/point-of-sale.entity';
 import { FiscalCounter } from './entities/fiscal-counter.entity';
@@ -61,7 +66,16 @@ export class InvoicesService {
       });
       if (!customer) throw new NotFoundException(`Customer ${dto.customerId} not found`);
 
-      const invoiceType = customer.condicionIva === CondicionIva.RI ? InvoiceType.A : InvoiceType.B;
+      // Invoice type: explicit override > derived from customer IVA condition.
+      // The override exists for monotributistas (who must issue type C) and
+      // any other case where the operator needs manual control.
+      const invoiceType =
+        dto.invoiceType ??
+        (customer.condicionIva === CondicionIva.RI
+          ? InvoiceType.A
+          : InvoiceType.B);
+
+      const paymentMethod = dto.paymentMethod ?? PaymentMethod.OTHER;
 
       // Compute line amounts
       const lines = dto.lines.map((l) => {
@@ -132,6 +146,7 @@ export class InvoicesService {
         afipRequest: authResult.afipRequest,
         afipResponse: authResult.afipResponse,
         issuedAt: new Date(),
+        paymentMethod,
       });
       const savedInvoice = await manager.save(Invoice, invoice);
 

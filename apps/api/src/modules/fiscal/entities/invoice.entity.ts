@@ -14,6 +14,17 @@ export enum InvoiceStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum PaymentMethod {
+  CASH = 'CASH',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  DEBIT_CARD = 'DEBIT_CARD',
+  CREDIT_CARD = 'CREDIT_CARD',
+  MERCADOPAGO = 'MERCADOPAGO',
+  CHECK = 'CHECK',
+  CURRENT_ACCOUNT = 'CURRENT_ACCOUNT',
+  OTHER = 'OTHER',
+}
+
 @Entity('invoices')
 export class Invoice extends TenantEntity {
   @Column({ name: 'point_of_sale_id' })
@@ -57,4 +68,12 @@ export class Invoice extends TenantEntity {
 
   @Column({ name: 'issued_at', type: 'timestamptz', nullable: true })
   issuedAt: Date | null;
+
+  @Column({
+    name: 'payment_method',
+    type: 'enum',
+    enum: PaymentMethod,
+    default: PaymentMethod.OTHER,
+  })
+  paymentMethod: PaymentMethod;
 }

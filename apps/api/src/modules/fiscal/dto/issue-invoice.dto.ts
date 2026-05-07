@@ -1,5 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { InvoiceType, PaymentMethod } from '../entities/invoice.entity';
 
 export class IssueInvoiceLineDto {
   @IsString()
@@ -29,6 +41,20 @@ export class IssueInvoiceDto {
   @IsUUID()
   @IsOptional()
   salesOrderId?: string;
+
+  /**
+   * Optional manual override for invoice type. When omitted the type is
+   * derived from the customer's IVA condition (RI → A, otherwise B).
+   * Required for monotributistas issuing C invoices.
+   */
+  @IsOptional()
+  @IsEnum(InvoiceType)
+  invoiceType?: InvoiceType;
+
+  /** How the customer paid. Defaults to OTHER if not provided. */
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
 
   @IsArray()
   @ValidateNested({ each: true })

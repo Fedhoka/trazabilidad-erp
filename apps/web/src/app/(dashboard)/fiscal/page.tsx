@@ -7,7 +7,12 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { PlusCircle, FileDown, Download } from 'lucide-react';
 import { apiFetchBlob, downloadReport } from '@/lib/api';
-import { usePointsOfSale, useCreatePointOfSale, useInvoices } from '@/hooks/use-fiscal';
+import {
+  usePointsOfSale,
+  useCreatePointOfSale,
+  useInvoices,
+  PAYMENT_METHOD_LABELS,
+} from '@/hooks/use-fiscal';
 import { useCustomers } from '@/hooks/use-customers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -192,6 +197,7 @@ export default function FiscalPage() {
                 <TableHead>Tipo</TableHead>
                 <TableHead>Número</TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Pago</TableHead>
                 <TableHead className="text-right">Neto</TableHead>
                 <TableHead className="text-right">IVA</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -212,7 +218,7 @@ export default function FiscalPage() {
                 ))}
               {!invLoading && invResult?.data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="p-0">
+                  <TableCell colSpan={11} className="p-0">
                     <EmptyState
                       icon={ReceiptIcon}
                       title="Sin facturas emitidas"
@@ -224,10 +230,26 @@ export default function FiscalPage() {
               {invResult?.data.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell>
-                    <Badge variant="outline">Fac. {inv.invoiceType}</Badge>
+                    <Badge
+                      variant={
+                        inv.invoiceType === 'A'
+                          ? 'default'
+                          : inv.invoiceType === 'B'
+                          ? 'secondary'
+                          : 'outline'
+                      }
+                      className="font-mono"
+                    >
+                      Fac. {inv.invoiceType}
+                    </Badge>
                   </TableCell>
                   <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
                   <TableCell>{customerMap[inv.customerId] ?? inv.customerId}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {PAYMENT_METHOD_LABELS[inv.paymentMethod] ?? inv.paymentMethod}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right font-mono">
                     {Number(inv.netAmount).toFixed(2)}
                   </TableCell>

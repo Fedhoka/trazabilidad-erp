@@ -26,6 +26,13 @@ import { LowStockTable } from '@/components/dashboard/low-stock-table';
 import { ExpiringTimelineChart } from '@/components/dashboard/expiring-timeline';
 import { TopList, buildTopListItems } from '@/components/dashboard/top-list';
 import { CondicionIvaBreakdown } from '@/components/dashboard/condicion-iva-breakdown';
+import { SalesMixCard } from '@/components/dashboard/sales-mix-card';
+import {
+  PAYMENT_METHOD_LABELS,
+  INVOICE_TYPE_LABELS,
+  type PaymentMethod,
+  type InvoiceType,
+} from '@/hooks/use-fiscal';
 import { formatNumber as fmtNum } from '@/lib/format';
 import {
   formatCurrency,
@@ -248,7 +255,56 @@ export default function StatsPage() {
             loading={salesLoading}
           />
         </div>
+
+        {/* ── Invoice type + payment method mix ──────────────────── */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SalesMixCard
+            title="Tipo de comprobante"
+            description="Facturación dividida por A / B / C — últimos 12 meses"
+            colorMap={INVOICE_TYPE_COLORS}
+            data={(sales?.byInvoiceType ?? []).map((d) => ({
+              key: d.invoiceType,
+              label: INVOICE_TYPE_LABELS[d.invoiceType as InvoiceType] ?? d.invoiceType,
+              revenue: d.revenue,
+              invoiceCount: d.invoiceCount,
+            }))}
+            loading={salesLoading}
+          />
+          <SalesMixCard
+            title="Método de pago"
+            description="Cómo cobraste — facturación por método en los últimos 12 meses"
+            colorMap={PAYMENT_METHOD_COLORS}
+            data={(sales?.byPaymentMethod ?? []).map((d) => ({
+              key: d.paymentMethod,
+              label:
+                PAYMENT_METHOD_LABELS[d.paymentMethod as PaymentMethod] ??
+                d.paymentMethod,
+              revenue: d.revenue,
+              invoiceCount: d.invoiceCount,
+            }))}
+            loading={salesLoading}
+          />
+        </div>
       </section>
     </>
   );
 }
+
+// Color slots for the new mix cards. Picked so each value gets a stable
+// colour across renders (no Recharts auto-rotation surprises).
+const INVOICE_TYPE_COLORS: Record<string, string> = {
+  A: 'var(--chart-1)', // terracotta
+  B: 'var(--chart-3)', // mustard
+  C: 'var(--chart-5)', // slate-blue
+};
+
+const PAYMENT_METHOD_COLORS: Record<string, string> = {
+  CASH: 'var(--chart-1)',
+  BANK_TRANSFER: 'var(--chart-3)',
+  DEBIT_CARD: 'var(--chart-4)',
+  CREDIT_CARD: 'var(--chart-5)',
+  MERCADOPAGO: 'var(--chart-6)',
+  CHECK: 'var(--chart-2)',
+  CURRENT_ACCOUNT: 'var(--info)',
+  OTHER: 'var(--muted-foreground)',
+};

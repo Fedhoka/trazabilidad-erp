@@ -7,7 +7,15 @@ import { ArrowLeft, CheckCircle, XCircle, Receipt } from 'lucide-react';
 import { useSalesOrder, useConfirmSO, useCancelSO } from '@/hooks/use-sales';
 import { useCustomers } from '@/hooks/use-customers';
 import { useMaterials } from '@/hooks/use-materials';
-import { usePointsOfSale, useIssueInvoice, type IssueInvoiceLine } from '@/hooks/use-fiscal';
+import {
+  usePointsOfSale,
+  useIssueInvoice,
+  PAYMENT_METHOD_LABELS,
+  INVOICE_TYPE_LABELS,
+  type IssueInvoiceLine,
+  type PaymentMethod,
+  type InvoiceType,
+} from '@/hooks/use-fiscal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -61,6 +69,10 @@ function IssueInvoiceDialog({
   const { data: posList } = usePointsOfSale();
   const issue = useIssueInvoice();
   const [posNumber, setPosNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
+  // "AUTO" means: let the server derive the invoice type from the
+  // customer's IVA condition. Anything else is a manual override.
+  const [invoiceType, setInvoiceType] = useState<'AUTO' | InvoiceType>('AUTO');
   const [lines, setLines] = useState<InvoiceLineState[]>(initialLines);
 
   function updateLine(i: number, field: keyof InvoiceLineState, value: string) {
@@ -79,6 +91,10 @@ function IssueInvoiceDialog({
         pointOfSaleNumber: pos.number,
         customerId,
         salesOrderId: soId,
+        paymentMethod,
+        // Only send invoiceType when the user explicitly chose one — let the
+        // server derive from the customer's IVA condition otherwise.
+        ...(invoiceType !== 'AUTO' ? { invoiceType } : {}),
         lines: lines.map((l) => ({
           description: l.description,
           quantity: parseFloat(l.quantity),
@@ -115,6 +131,63 @@ function IssueInvoiceDialog({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Tipo de comprobante</Label>
+          <Select
+            value={invoiceType}
+            onValueChange={(v) =>
+              v && setInvoiceType(v as 'AUTO' | InvoiceType)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue
+                getLabel={(v) =>
+                  v === 'AUTO'
+                    ? 'Auto (según IVA del cliente)'
+                    : INVOICE_TYPE_LABELS[v as InvoiceType] ?? null
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="AUTO">Auto (según IVA del cliente)</SelectItem>
+              {(Object.keys(INVOICE_TYPE_LABELS) as InvoiceType[]).map((t) => (
+                <SelectItem key={t} value={t}>
+                  {INVOICE_TYPE_LABELS[t]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[0.7rem] text-muted-foreground">
+            RI → A · CF/MONO/EXENTO → B. Cambiá manual sólo si emitís C.
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Método de pago *</Label>
+          <Select
+            value={paymentMethod}
+            onValueChange={(v) => v && setPaymentMethod(v as PaymentMethod)}
+          >
+            <SelectTrigger>
+              <SelectValue
+                getLabel={(v) =>
+                  PAYMENT_METHOD_LABELS[v as PaymentMethod] ?? null
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map(
+                (m) => (
+                  <SelectItem key={m} value={m}>
+                    {PAYMENT_METHOD_LABELS[m]}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="rounded-md border overflow-x-auto">

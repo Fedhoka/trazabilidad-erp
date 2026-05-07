@@ -9,9 +9,38 @@ export interface PointOfSale {
   isActive: boolean;
 }
 
+export type InvoiceType = 'A' | 'B' | 'C';
+
+export type PaymentMethod =
+  | 'CASH'
+  | 'BANK_TRANSFER'
+  | 'DEBIT_CARD'
+  | 'CREDIT_CARD'
+  | 'MERCADOPAGO'
+  | 'CHECK'
+  | 'CURRENT_ACCOUNT'
+  | 'OTHER';
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  CASH: 'Efectivo',
+  BANK_TRANSFER: 'Transferencia',
+  DEBIT_CARD: 'Débito',
+  CREDIT_CARD: 'Crédito',
+  MERCADOPAGO: 'MercadoPago',
+  CHECK: 'Cheque',
+  CURRENT_ACCOUNT: 'Cuenta corriente',
+  OTHER: 'Otro',
+};
+
+export const INVOICE_TYPE_LABELS: Record<InvoiceType, string> = {
+  A: 'Factura A',
+  B: 'Factura B',
+  C: 'Factura C',
+};
+
 export interface Invoice {
   id: string;
-  invoiceType: 'A' | 'B' | 'C';
+  invoiceType: InvoiceType;
   invoiceNumber: number;
   pointOfSaleId: string;
   customerId: string;
@@ -23,6 +52,7 @@ export interface Invoice {
   cae: string | null;
   caeExpiresOn: string | null;
   issuedAt: string | null;
+  paymentMethod: PaymentMethod;
 }
 
 export interface IssueInvoiceLine {
@@ -36,6 +66,10 @@ export interface IssueInvoicePayload {
   pointOfSaleNumber: number;
   customerId: string;
   salesOrderId?: string;
+  /** Optional manual override. Defaults to derived-from-customer-IVA on the server. */
+  invoiceType?: InvoiceType;
+  /** Defaults to OTHER on the server when not provided. */
+  paymentMethod?: PaymentMethod;
   lines: IssueInvoiceLine[];
 }
 
@@ -70,6 +104,8 @@ export function useIssueInvoice() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [INV_KEY] });
       qc.invalidateQueries({ queryKey: ['sales-orders'] });
+      qc.invalidateQueries({ queryKey: ['dashboard', 'sales-analytics'] });
+      qc.invalidateQueries({ queryKey: ['dashboard', 'kpis'] });
     },
   });
 }
